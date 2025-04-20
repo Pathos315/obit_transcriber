@@ -1,3 +1,4 @@
-obituaries/** */
+obituaries/*
 obituary_links.txt
 temp_processed.jpg
+__pycache__/*
