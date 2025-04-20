@@ -8,6 +8,7 @@ import pytesseract
 from PIL import Image, UnidentifiedImageError
 
 from autocorrection import autocorrect_text
+from preprocessing import preprocess_image
 
 
 def replace_text_with_dict(text: str) -> str:
@@ -72,53 +73,6 @@ def clean_irregular_text(text: str) -> str:
     return text
 
 
-def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
-    """
-    Preprocess the image for OCR by:
-    1. Converting to grayscale
-    2. Applying thresholding to handle background noise
-    3. Performing dilation to connect broken text
-    4. Inverting the image to have black text on a white background
-    Args:
-        image_path (Path): Path to the image file
-    Returns:
-        cv2.typing.MatLike: Preprocessed image ready for OCR
-    """
-    # Check if the file exists
-    if not image_path.is_file():
-        raise FileNotFoundError(f"File not found: {image_path}")
-    # Check if the file is an image
-    if not image_path.suffix.lower() in [".jpg", ".jpeg", ".png"]:
-        raise ValueError(f"Unsupported file type: {image_path.suffix}")
-    # Check if the file is empty
-    if image_path.stat().st_size == 0:
-        raise ValueError(f"File is empty: {image_path}")
-    # Check if the file is corrupted
-    try:
-        with Image.open(image_path) as img:
-            img.verify()  # Verify the image is not corrupted
-    except (IOError, UnidentifiedImageError):
-        raise ValueError(f"File is corrupted: {image_path}")
-
-    # Read the image
-    img = cv2.imread(image_path)
-
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Apply thresholding to handle background noise
-    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-
-    # Perform dilation to connect broken text
-    kernel = np.ones((1, 1), np.uint64)
-    dilated = cv2.dilate(thresh, kernel, iterations=1)
-
-    # Invert back to black text on white background
-    processed = cv2.bitwise_not(dilated)
-
-    return processed
-
-
 def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
     """
     Transcribes text from images in a given directory using Tesseract OCR.
@@ -140,7 +94,7 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
                 # Extract text
                 text = pytesseract.image_to_string(
                     temp_img,
-                    config=r"--oem 3 --psm 1 --dpi 150",
+                    config=r"--oem 3 --psm 1 --dpi 200 -l eng -c textord_really_old_xheight=1 -c harscale=0 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\"-",
                 )
 
                 text = clean_irregular_text(text)
@@ -152,4 +106,4 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    process_images("../obituaries/1997", True)
+    process_images("../obituaries/1997")
