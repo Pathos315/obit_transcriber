@@ -7,7 +7,6 @@ import pytesseract
 from autocorrection import autocorrect_text
 from PIL import Image, UnidentifiedImageError
 from preprocessing import preprocess_image
-from lang_processing import merge_ocr_results
 
 TESS_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c preserve_interword_spaces=1 -c classify_font_name='Times New Roman' -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
 
