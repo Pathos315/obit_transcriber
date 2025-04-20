@@ -1,18 +1,15 @@
 import functools
 import re
-from datetime import datetime
 from pathlib import Path
-from typing import Tuple
 
 import cv2
 import numpy as np
 import pytesseract
-from deskew import determine_skew
 from PIL import Image, UnidentifiedImageError
 from spellchecker import SpellChecker
 
 spell = SpellChecker()
-spell.word_frequency.load_text_file("valid_words.txt")
+spell.word_frequency.load_text_file("obit_transcriber/valid_words.txt")
 
 
 def replace_text_with_dict(text: str) -> str:
