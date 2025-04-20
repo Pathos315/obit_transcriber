@@ -218,4 +218,4 @@ def process_images(filepath: str) -> None:
 
 
 if __name__ == "__main__":
-    process_images("/Users/johnfallot/obituaries/1997/test")
+    process_images("../obituaries/1997")
