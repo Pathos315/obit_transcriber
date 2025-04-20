@@ -6,10 +6,8 @@ import cv2
 import numpy as np
 import pytesseract
 from PIL import Image, UnidentifiedImageError
-from spellchecker import SpellChecker
 
-spell = SpellChecker()
-spell.word_frequency.load_text_file("obit_transcriber/valid_words.txt")
+from autocorrection import autocorrect_text
 
 
 def replace_text_with_dict(text: str) -> str:
@@ -121,76 +119,12 @@ def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
     return processed
 
 
-def autocorrect_text(text: str) -> str:
-    """
-    Autocorrect misspelled words in a text using pyspellchecker, optimized for speed.
-
-    Args:
-        text (str): The input text to correct
-
-    Returns:
-        str: The corrected text
-    """
-    # Pre-compile the punctuation set for faster lookups
-    PUNCT_SET = set('.,:;!?()[]{}""\'')
-
-    # Use list comprehension for initial splitting (faster than calling split())
-    words = text.split()
-    result = []
-    result_append = result.append  # Local reference for faster method calls
-
-    # Process words in batches to reduce function call overhead
-    batch_size = 100
-    for i in range(0, len(words), batch_size):
-        batch = words[i : i + batch_size]
-
-        for word in batch:
-            # Handle common case first (no punctuation) for early return
-            if not word:
-                continue
-
-            # Check if word has any punctuation at all before processing
-            if word[-1] not in PUNCT_SET:
-                # Skip correction for capitalized words (likely proper nouns)
-                if word[0].isupper():
-                    result_append(word)
-                else:
-                    # Only correct lowercase words
-                    result_append(spell.correction(word) or word)
-                continue
-
-            # Fast punctuation extraction with less string operations
-            end_idx = len(word) - 1
-            while end_idx >= 0 and word[end_idx] in PUNCT_SET:
-                end_idx -= 1
-
-            # Extract word and punctuation more efficiently
-            if end_idx < 0:
-                # Word is all punctuation
-                result_append(word)
-                continue
-
-            actual_word = word[: end_idx + 1]
-            punctuation = word[end_idx + 1 :]
-
-            # Skip correction for capitalized words (likely proper nouns)
-            if actual_word and actual_word[0].isupper():
-                result_append(actual_word + punctuation)
-            elif actual_word:
-                corrected = spell.correction(actual_word)
-                result_append((corrected or actual_word) + punctuation)
-            else:
-                result_append(punctuation)
-
-    # Join is typically faster than multiple string concatenations
-    return " ".join(result)
-
-
-def process_images(filepath: str) -> None:
+def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
     """
     Transcribes text from images in a given directory using Tesseract OCR.
     Args:
         filepath (str): Path to the directory containing images
+        spellcheck (bool): Whether to perform spell checking on the extracted text
     """
     directory = Path(filepath).glob("*.jpg")
     for file in directory:
@@ -202,7 +136,6 @@ def process_images(filepath: str) -> None:
         cv2.imwrite(temp_file, processed_img)
 
         try:
-            # Preprocess the image
             with Image.open(temp_file) as temp_img:
                 # Extract text
                 text = pytesseract.image_to_string(
@@ -211,11 +144,12 @@ def process_images(filepath: str) -> None:
                 )
 
                 text = clean_irregular_text(text)
-                # text = autocorrect_text(text)
+                if spellcheck:
+                    text = autocorrect_text(text)
                 print(text)
         except UnidentifiedImageError:
             continue
 
 
 if __name__ == "__main__":
-    process_images("../obituaries/1997")
+    process_images("../obituaries/1997", True)
