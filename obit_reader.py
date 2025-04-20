@@ -11,6 +11,9 @@ from autocorrection import autocorrect_text
 from preprocessing import preprocess_image
 
 
+TESS_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c textord_really_old_xheight=1 -c harscale=0 -c preserve_interword_spaces=1 -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
+
+
 def replace_text_with_dict(text: str) -> str:
     """
     Replaces specific patterns in the text with their replacements
@@ -94,7 +97,8 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
                 # Extract text
                 text = pytesseract.image_to_string(
                     temp_img,
-                    config=r"--oem 3 --psm 1 --dpi 200 -l eng -c textord_really_old_xheight=1 -c harscale=0 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\"-",
+                    lang="eng",
+                    config=TESS_CONFIG,
                 )
 
                 text = clean_irregular_text(text)
