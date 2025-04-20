@@ -3,15 +3,13 @@ import re
 from pathlib import Path
 
 import cv2
-import numpy as np
 import pytesseract
-from PIL import Image, UnidentifiedImageError
-
 from autocorrection import autocorrect_text
+from PIL import Image, UnidentifiedImageError
 from preprocessing import preprocess_image
+from lang_processing import merge_ocr_results
 
-
-TESS_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c textord_really_old_xheight=1 -c harscale=0 -c preserve_interword_spaces=1 -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
+TESS_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c preserve_interword_spaces=1 -c classify_font_name='Times New Roman' -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
 
 
 def replace_text_with_dict(text: str) -> str:
@@ -100,7 +98,6 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
                     lang="eng",
                     config=TESS_CONFIG,
                 )
-
                 text = clean_irregular_text(text)
                 if spellcheck:
                     text = autocorrect_text(text)

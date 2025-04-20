@@ -2,3 +2,4 @@ obituaries/*
 obituary_links.txt
 temp_processed.jpg
 __pycache__/*
+lang_processing.py
