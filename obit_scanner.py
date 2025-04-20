@@ -40,6 +40,26 @@ def extract_filename_from_url(obituary_url):
 
 
 def run(playwright: Playwright) -> list[str]:
+    """
+    Run the Playwright browser to scrape obituary links from the GLBT History website.
+    This function uses the Playwright library to automate the browser and extract
+    obituary links from the search page.
+
+    It navigates to the search page, sets the search parameters, and retrieves
+    the links to the obituaries for the specified year.
+    Returns a list of obituary links.
+
+    :param playwright: Playwright instance
+    :return: List of obituary links
+
+    Example:
+    [
+        "http://obit.glbthistory.org/olo/display.jsp?name=19910110_Alt_Russell_Darl",
+        "http://obit.glbthistory.org/olo/display.jsp?name=19910111_Brown_James_E",
+        ...
+    ]
+
+    """
     browser = playwright.chromium.launch(headless=False)
     context = browser.new_context()
     page = context.new_page()
