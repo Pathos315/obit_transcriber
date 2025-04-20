@@ -106,4 +106,4 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    process_images("../obituaries/1997")
+    process_images("obituaries/1997")

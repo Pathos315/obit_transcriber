@@ -11,6 +11,19 @@ YEAR = input(
 )  # Change this to the desired year
 
 
+client = requests.sessions.Session()
+adapter = requests.adapters.HTTPAdapter(
+    pool_connections=25, pool_maxsize=25, pool_block=True
+)
+client.mount("http://", adapter)
+client.mount("https://", adapter)
+client.headers.update(
+    {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+    }
+)
+
+
 def ensure_directory_exists(path):
     """Create directory if it doesn't exist"""
     if not os.path.exists(path):
@@ -94,7 +107,7 @@ def run(playwright: Playwright) -> list[str]:
     return obituary_links
 
 
-def transform_url_to_image_path(display_url):
+def transform_url_to_image_path(display_url: str) -> str | None:
     """
     Transform a display URL to an image URL for the GLBT History obituary database.
 
@@ -130,7 +143,7 @@ def transform_url_to_image_path(display_url):
     return image_url
 
 
-def bulk_download_obituaries(obituary_links: list[str]):
+def bulk_download_obituaries(obituary_links: list[str]) -> None:
     """
     Download all obituaries from the list of links.
     """
@@ -142,25 +155,24 @@ def bulk_download_obituaries(obituary_links: list[str]):
     save_dir = f"obituaries/{YEAR}"
     ensure_directory_exists(save_dir)
 
-    # Process each obituary
-    with requests.sessions.Session() as session:
-        for i, obituary_link in enumerate(obituary_links):
-            try:
-                print(f"Processing {i + 1}/{len(obituary_links)}: {obituary_link}")
-                href = f"http://obit.glbthistory.org/olo/{obituary_link}"
-                image_url = transform_url_to_image_path(href)
+    # Process each obituary:
+    for i, obituary_link in enumerate(obituary_links):
+        try:
+            print(f"Processing {i + 1}/{len(obituary_links)}: {obituary_link}")
+            href = f"http://obit.glbthistory.org/olo/{obituary_link}"
+            image_url = transform_url_to_image_path(href)
 
-                filename = extract_filename_from_url(href)
-                file_path = os.path.join(save_dir, f"{filename}")
+            filename = extract_filename_from_url(href)
+            file_path = os.path.join(save_dir, f"{filename}")
 
-                with open(file_path, "wb") as f:
-                    response = session.get(image_url)
-                    f.write(response.content)
-                    time.sleep(1)  # Rate limit to avoid overwhelming the server
+            with open(file_path, "wb") as f:
+                response = client.get(image_url)
+                f.write(response.content)
+                time.sleep(1)  # Rate limit to avoid overwhelming the server
 
-            except Exception as e:
-                print(f"Error processing {obituary_link}: {e}")
-                continue
+        except Exception as e:
+            print(f"Error processing {obituary_link}: {e}")
+            continue
 
 
 if __name__ == "__main__":

@@ -33,15 +33,19 @@ def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
         raise ValueError(f"File is corrupted: {image_path}")
 
     # Read the image
-    img: cv2.typing.MatLike = cv2.imread(image_path)
+    img_cv: cv2.typing.MatLike = cv2.imread(image_path)
 
-    img = scale_up_image(img)
+    # By default OpenCV stores images in BGR format and since pytesseract assumes RGB format,
+    # we need to convert from BGR to RGB format/mode:
+    img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
 
-    img = denoise(img)
+    img_rgb = scale_up_image(img_rgb)
+
+    img_rgb = denoise(img_rgb)
 
     # Convert to binary image, applying thresholding to handle background noise
     thresh = cv2.threshold(
-        img,
+        img_rgb,
         0,
         255,
         cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU,
