@@ -8,7 +8,6 @@ LOG_DIR = Path("logs")
 
 # OCR Settings
 TESSERACT_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c preserve_interword_spaces=1 -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
-TESSERACT_LANGUAGE = "eng"
 
 # Image preprocessing
 SCALE_FACTOR = 3.0
