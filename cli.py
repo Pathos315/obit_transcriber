@@ -1,9 +1,8 @@
 # cli.py
 import argparse
 
-from obit_transcriber.obit_transcriber import process_images
-
 from obit_transcriber.obit_downloader import download_obituaries
+from obit_transcriber.obit_transcriber import transcribe_images
 
 
 def main():
@@ -30,7 +29,7 @@ def main():
     if args.command == "download":
         download_obituaries(args.year)
     elif args.command == "process":
-        process_images(args.directory, args.spellcheck)
+        transcribe_images(args.directory, args.spellcheck)
     else:
         parser.print_help()
 
