@@ -1,28 +1,13 @@
-import os
-from pathlib import Path
 import re
 import time
+from pathlib import Path
 from urllib.parse import unquote
 
+import config
 import requests
+import tqdm
+from logger import logger
 from playwright.sync_api import Playwright, sync_playwright
-
-YEAR = input(
-    "Enter the desired year (e.g. 1980, 1991): "
-)  # Change this to the desired year
-
-
-client = requests.sessions.Session()
-adapter = requests.adapters.HTTPAdapter(
-    pool_connections=25, pool_maxsize=25, pool_block=True
-)
-client.mount("http://", adapter)
-client.mount("https://", adapter)
-client.headers.update(
-    {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-    }
-)
 
 
 def ensure_directory_exists(path: str | Path) -> Path:
@@ -38,7 +23,7 @@ def extract_filename_from_url(obituary_url):
 
     Example:
     "http://obit.glbthistory.org/olo/display.jsp?name=19910110_Alt_Russell_Darl" ->
-    "19910110_Alt_Russell_Darl.jpg"
+    "19910110_Alt_Russell_Darl"
     """
     # Extract the name parameter
     name_match = re.search(r"display\.jsp\?name=([^&]+)", obituary_url)
@@ -47,7 +32,7 @@ def extract_filename_from_url(obituary_url):
     return unquote(name_match.group(1))
 
 
-def run(playwright: Playwright) -> list[str]:
+def run(playwright: Playwright, year: str = "1991") -> list[str]:
     """
     Run the Playwright browser to scrape obituary links from the GLBT History website.
     This function uses the Playwright library to automate the browser and extract
@@ -73,18 +58,18 @@ def run(playwright: Playwright) -> list[str]:
     page = context.new_page()
 
     # Navigate to the search page
-    print(f"Navigating to the search page...")
+    logger.info(f"Navigating to the search page...")
     page.goto("http://obit.glbthistory.org/olo/index.jsp")
 
     # Set the search parameters
-    page.locator('select[name="yearfrom"]').select_option(YEAR)
+    page.locator('select[name="yearfrom"]').select_option(year)
     page.locator('select[name="monthto"]').select_option("12")
-    page.locator('select[name="yearto"]').select_option(YEAR)
+    page.locator('select[name="yearto"]').select_option(year)
 
     # Click the search button
     search_button = page.get_by_role(
         "cell",
-        name=f"Select a date range to show all obituaries in the database within that range. From: January {YEAR} To: December {YEAR} Search",
+        name=f"Select a date range to show all obituaries in the database within that range. From: January {year} To: December {year} Search",
         exact=True,
     ).get_by_role("button")
     search_button.click()
@@ -126,7 +111,7 @@ def transform_url_to_image_path(display_url: str) -> str | None:
     base_domain = re.match(r"(https?://[^/]+/[^/]+)/", display_url).group(1)
 
     # Construct the image URL
-    image_url = (
+    image_url: str = (
         f"{base_domain}/imagedb/{year}/{month}/{day}/{name_param}/m{date_str}_0.jpg"
     )
 
@@ -137,35 +122,63 @@ def bulk_download_obituaries(obituary_links: list[str]) -> None:
     """
     Download all obituaries from the list of links.
     """
-    print(f"Found {len(obituary_links)} obituary links")
     with open("obituary_links.txt", "w") as f:
         f.writelines(obituary_links)
 
     # Create directory for saving images
-    save_dir = f"obituaries/{YEAR}"
+    save_dir = config.DATA_DIR
     ensure_directory_exists(save_dir)
 
     # Process each obituary:
-    for i, obituary_link in enumerate(obituary_links):
+    for i, obituary_link in tqdm.tqdm(
+        obituary_links, desc="Downloading obituaries: ", unit="obituary"
+    ):
         try:
-            print(f"Processing {i + 1}/{len(obituary_links)}: {obituary_link}")
-            href = f"http://obit.glbthistory.org/olo/{obituary_link}"
-            image_url = transform_url_to_image_path(href)
-
-            filename = extract_filename_from_url(href)
-            file_path = os.path.join(save_dir, f"{filename}.jpg")
-
-            with open(file_path, "wb") as f:
-                response = client.get(image_url)
-                f.write(response.content)
-                time.sleep(1)  # Rate limit to avoid overwhelming the server
-
+            download_obituary_image(obituary_link)
         except Exception as e:
-            print(f"Error processing {obituary_link}: {e}")
+            logger.error(f"Error processing {obituary_link}: {e}")
             continue
 
 
-if __name__ == "__main__":
+def download_obituary_image(obituary_link: str) -> None:
+    href = f"http://obit.glbthistory.org/olo/{obituary_link}"
+
+    with requests.Session() as client:
+
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=25, pool_maxsize=25, pool_block=True
+        )
+        client.mount("http://", adapter)
+        client.mount("https://", adapter)
+        client.headers.update(
+            {
+                "User-Agent": config.USER_AGENT,
+            }
+        )
+        image_url = transform_url_to_image_path(href)
+        filename = extract_filename_from_url(href)
+        file_path: Path = config.DATA_DIR / f"{filename}.jpg"
+        try:
+            response = client.get(
+                image_url,
+                timeout=config.REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            with open(file_path, "wb") as f:
+                f.write(response.content)
+                time.sleep(
+                    config.RATE_LIMIT_DELAY
+                )  # Rate limit to avoid overwhelming the server
+        except requests.RequestException as e:
+            logger.error(f"Failed to download {image_url}: {e}")
+            raise
+
+
+def download_obituaries() -> None:
     with sync_playwright() as playwright:
         obituary_links = run(playwright)
         bulk_download_obituaries(obituary_links)
+
+
+if __name__ == "__main__":
+    download_obituaries()
