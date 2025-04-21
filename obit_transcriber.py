@@ -7,8 +7,7 @@ import pytesseract
 from autocorrection import autocorrect_text
 from PIL import Image, UnidentifiedImageError
 from preprocessing import preprocess_image
-
-TESS_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c preserve_interword_spaces=1 -c classify_font_name='Times New Roman' -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
+from config import TESSERACT_CONFIG
 
 
 def replace_text_with_dict(text: str) -> str:
@@ -73,7 +72,10 @@ def clean_irregular_text(text: str) -> str:
     return text
 
 
-def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
+def transcribe_images(
+    filepath: str | Path,
+    spellcheck: bool = False,
+) -> None:
     """
     Transcribes text from images in a given directory using Tesseract OCR.
     Args:
@@ -95,7 +97,7 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
                 text = pytesseract.image_to_string(
                     temp_img,
                     lang="eng",
-                    config=TESS_CONFIG,
+                    config=TESSERACT_CONFIG,
                 )
                 text = clean_irregular_text(text)
                 if spellcheck:
@@ -106,4 +108,4 @@ def process_images(filepath: str | Path, spellcheck: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    process_images("obituaries/1997")
+    transcribe_images()
