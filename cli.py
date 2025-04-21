@@ -1,0 +1,39 @@
+# cli.py
+import argparse
+
+from obit_transcriber.obit_transcriber import process_images
+
+from obit_transcriber.obit_downloader import download_obituaries
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Obituary Reader")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+
+    # Download command
+    download_parser = subparsers.add_parser("download", help="Download obituaries")
+    download_parser.add_argument("year", type=str, help="Year to download (e.g., 1991)")
+
+    # Transcribe command
+    process_parser = subparsers.add_parser(
+        "transcribe", help="Transcribe obituary images"
+    )
+    process_parser.add_argument(
+        "directory", type=str, help="Directory with obituary images to be transcribed"
+    )
+    process_parser.add_argument(
+        "--spellcheck", action="store_true", help="Apply spellchecking"
+    )
+
+    args = parser.parse_args()
+
+    if args.command == "download":
+        download_obituaries(args.year)
+    elif args.command == "process":
+        process_images(args.directory, args.spellcheck)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
