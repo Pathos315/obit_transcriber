@@ -23,3 +23,38 @@ obitnav = "obit_transcriber/cli.py:main"
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
+mypy = "^1.7.0"
+black = "^23.10.0"
+
+[tool.black]
+line-length = 88
+target-version = ['py312'] # Matching your Python version
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"            # Less strict typing for tests
+disallow_untyped_defs = false
