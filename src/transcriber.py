@@ -66,7 +66,6 @@ def clean_irregular_text(text: str) -> str:
     # Step 2: Remove excess leading/trailing spaces from each line
     lines = (line.strip() for line in text.split("\n"))
     text = "\n".join(lines)
-
     text = replace_text_with_dict(text)
 
     return text
