@@ -1,8 +1,9 @@
 from pathlib import Path
-from PIL import UnidentifiedImageError, Image
+
+import config
 import cv2
 import numpy as np
-import config
+from PIL import Image, UnidentifiedImageError
 
 
 def preprocess_image(image_path: Path) -> cv2.typing.MatLike:

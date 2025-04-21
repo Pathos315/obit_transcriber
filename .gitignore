@@ -4,3 +4,5 @@ temp_processed.jpg
 __pycache__/*
 lang_processing.py
 .DS_Store
+logs/obit_transcriber.log
+poetry.lock

@@ -1,21 +1,25 @@
-# cli.py
+#!/usr/bin/env python
 import argparse
 
-from obit_transcriber.obit_downloader import download_obituaries
-from obit_transcriber.obit_transcriber import transcribe_images
+from obit_downloader import download_obituaries
+from obit_transcriber import transcribe_images
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Obituary Reader")
+def setup_command_line_args():
+    parser = argparse.ArgumentParser(
+        prog="obitnav",
+        description="Navigates the Bay Area Reporter obituary archives website, downloading obituaries or transcribing them.",
+        epilog="Example usage: obitnav download 1991 1999",
+    )
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Download command
     download_parser = subparsers.add_parser("download", help="Download obituaries")
     download_parser.add_argument(
-        "init_year", type=str, help="Year to begin downloads from (e.g., 1991)"
+        "yearfrom", type=str, help="Year to begin downloads from (e.g., 1991)"
     )
     download_parser.add_argument(
-        "end_year", type=str, help="End of range for downloads from (e.g., 1999)"
+        "yearto", type=str, help="End of range for downloads from (e.g., 1999)"
     )
 
     # Transcribe command
@@ -30,13 +34,34 @@ def main():
     )
 
     args = parser.parse_args()
+    return parser, args
 
-    if args.command == "download":
-        download_obituaries(args.year)
-    elif args.command == "process":
+
+def execute_download(args: argparse.Namespace) -> None:
+
+    if args.yearfrom and args.yearto:  # At least one argument must be provided
+        download_obituaries(args.yearfrom, args.yearto)
+    else:
+        print("\nError: Both yearfrom and yearto are required.\n")
+
+
+def execute_transcription(args: argparse.Namespace) -> None:
+    if args.directory:
         transcribe_images(args.directory, args.spellcheck)
     else:
+        print("\nError: Directory argument is required for transcription.\n")
+
+
+def main():
+    parser, args = setup_command_line_args()
+
+    if args.command == "download":
+        execute_download(args)
+    elif args.command == "transcribe":
+        execute_transcription(args)
+    else:
         parser.print_help()
+        exit(1)
 
 
 if __name__ == "__main__":

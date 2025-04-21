@@ -40,7 +40,7 @@ def extract_filename_from_url(obituary_url: str) -> str | None:
 
 
 def run(
-    playwright: Playwright, init_year: str = "1999", end_year: str = "2000"
+    playwright: Playwright, year_from: str = "1999", year_to: str = "2000"
 ) -> list[str]:
     """
     Run the Playwright browser to scrape obituary links from the GLBT History website.
@@ -76,14 +76,14 @@ def run(
     page.goto("http://obit.glbthistory.org/olo/index.jsp")
 
     # Set the search parameters
-    page.locator('select[name="yearfrom"]').select_option(init_year)
+    page.locator('select[name="yearfrom"]').select_option(year_from)
     page.locator('select[name="monthto"]').select_option("12")
-    page.locator('select[name="yearto"]').select_option(end_year)
+    page.locator('select[name="yearto"]').select_option(year_to)
 
     # Click the search button
     search_button = page.get_by_role(
         "cell",
-        name=f"Select a date range to show all obituaries in the database within that range. From: January {init_year} To: December {end_year} Search",
+        name=f"Select a date range to show all obituaries in the database within that range. From: January {year_from} To: December {year_to} Search",
         exact=True,
     ).get_by_role("button")
     search_button.click()
@@ -299,14 +299,14 @@ def configure_http_client(client: requests.Session) -> None:
     )
 
 
-def download_obituaries() -> None:
+def download_obituaries(year_from: str, year_to: str) -> None:
     """
     Main function to download obituaries.
     This function initializes the Playwright browser, scrapes the obituary links,
     and downloads the images for each obituary.
     """
     with sync_playwright() as playwright:
-        obituary_links = run(playwright)
+        obituary_links = run(playwright, year_from, year_to)
         bulk_download_obituaries(obituary_links)
 
 

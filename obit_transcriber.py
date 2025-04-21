@@ -5,9 +5,9 @@ from pathlib import Path
 import cv2
 import pytesseract
 from autocorrection import autocorrect_text
+from config import TESSERACT_CONFIG
 from PIL import Image, UnidentifiedImageError
 from preprocessing import preprocess_image
-from config import TESSERACT_CONFIG
 
 
 def replace_text_with_dict(text: str) -> str:
@@ -105,7 +105,3 @@ def transcribe_images(
                 print(text)
         except UnidentifiedImageError:
             continue
-
-
-if __name__ == "__main__":
-    transcribe_images()
