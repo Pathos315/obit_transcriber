@@ -299,7 +299,7 @@ def configure_http_client(client: requests.Session) -> None:
     )
 
 
-def main() -> None:
+def download_obituaries() -> None:
     """
     Main function to download obituaries.
     This function initializes the Playwright browser, scrapes the obituary links,
@@ -311,4 +311,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    download_obituaries()

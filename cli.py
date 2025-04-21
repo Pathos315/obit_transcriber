@@ -11,7 +11,12 @@ def main():
 
     # Download command
     download_parser = subparsers.add_parser("download", help="Download obituaries")
-    download_parser.add_argument("year", type=str, help="Year to download (e.g., 1991)")
+    download_parser.add_argument(
+        "init_year", type=str, help="Year to begin downloads from (e.g., 1991)"
+    )
+    download_parser.add_argument(
+        "end_year", type=str, help="End of range for downloads from (e.g., 1999)"
+    )
 
     # Transcribe command
     process_parser = subparsers.add_parser(
