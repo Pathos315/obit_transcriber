@@ -3,11 +3,11 @@ import time
 from pathlib import Path
 from urllib.parse import unquote
 
-import config
+import obit_transcriber.src.config as config
 import requests
 from requests import adapters
 import tqdm
-from logger import logger
+from obit_transcriber.src.logger import logger
 from playwright.sync_api import Playwright, sync_playwright
 
 

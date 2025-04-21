@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import config
+import obit_transcriber.src.config as config
 import cv2
 import numpy as np
 from PIL import Image, UnidentifiedImageError

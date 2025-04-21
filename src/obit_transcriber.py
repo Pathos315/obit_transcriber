@@ -3,10 +3,10 @@ import re
 from pathlib import Path
 
 import pytesseract
-from autocorrection import autocorrect_text
-from config import TESSERACT_CONFIG
+from obit_transcriber.src.autocorrection import autocorrect_text
+from obit_transcriber.src.config import TESSERACT_CONFIG
 from PIL import Image, UnidentifiedImageError
-from preprocessing import preprocess_image
+from obit_transcriber.src.preprocessing import preprocess_image
 
 
 def replace_text_with_dict(text: str) -> str:

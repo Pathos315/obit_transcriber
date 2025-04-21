@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "obituary-reader"
-version = "0.2.1"
+version = "0.3.1"
 description = "A module to download and transcribe obituaries from the Bay Area Reporter archives."
 authors = ["John Fallot <john.fallot@gmail.com>"]
 license = "MIT"
@@ -19,3 +19,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 obitnav = "obit_transcriber/cli.py:main"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
