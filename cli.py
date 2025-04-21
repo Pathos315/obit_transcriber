@@ -2,6 +2,7 @@
 import argparse
 
 from obit_downloader import download_obituaries
+
 from obit_transcriber import transcribe_images
 
 

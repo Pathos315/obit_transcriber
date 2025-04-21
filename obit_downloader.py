@@ -5,6 +5,7 @@ from urllib.parse import unquote
 
 import config
 import requests
+from requests import adapters
 import tqdm
 from logger import logger
 from playwright.sync_api import Playwright, sync_playwright
@@ -287,7 +288,7 @@ def configure_http_client(client: requests.Session) -> None:
     Args:
         client: The HTTP client session to configure
     """
-    adapter = requests.adapters.HTTPAdapter(
+    adapter = adapters.HTTPAdapter(
         pool_connections=25, pool_maxsize=25, pool_block=True
     )
     client.mount("http://", adapter)

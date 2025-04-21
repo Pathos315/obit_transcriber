@@ -18,4 +18,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-obitnav = "/usr/local/bin/python3 /Users/johnfallot/obituary_reader/obit_transcriber/cli.py:main"
+obitnav = "obit_transcriber/cli.py:main"
