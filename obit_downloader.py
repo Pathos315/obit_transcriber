@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import re
 import time
 from urllib.parse import unquote
@@ -24,10 +25,11 @@ client.headers.update(
 )
 
 
-def ensure_directory_exists(path):
-    """Create directory if it doesn't exist"""
-    if not os.path.exists(path):
-        os.makedirs(path)
+def ensure_directory_exists(path: str | Path) -> Path:
+    """Create directory if it doesn't exist and return the Path object."""
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def extract_filename_from_url(obituary_url):
@@ -42,14 +44,7 @@ def extract_filename_from_url(obituary_url):
     name_match = re.search(r"display\.jsp\?name=([^&]+)", obituary_url)
     if not name_match:
         return None
-
-    # Get and decode the name parameter
-    name_param = unquote(name_match.group(1))
-
-    # Create the filename
-    filename = f"{name_param}.jpg"
-
-    return filename
+    return unquote(name_match.group(1))
 
 
 def run(playwright: Playwright) -> list[str]:
@@ -116,12 +111,7 @@ def transform_url_to_image_path(display_url: str) -> str | None:
     "http://obit.glbthistory.org/olo/imagedb/1991/01/10/19910110_Alt_Russell_Darl/m19910110_0.jpg"
     """
     # Extract the name parameter
-    name_match = re.search(r"display\.jsp\?name=([^&]+)", display_url)
-    if not name_match:
-        return None
-
-    # Get and decode the name parameter
-    name_param = unquote(name_match.group(1))
+    name_param = extract_filename_from_url(display_url)
 
     # Extract date components (assuming first 8 chars are YYYYMMDD)
     if len(name_param) < 8:
@@ -163,7 +153,7 @@ def bulk_download_obituaries(obituary_links: list[str]) -> None:
             image_url = transform_url_to_image_path(href)
 
             filename = extract_filename_from_url(href)
-            file_path = os.path.join(save_dir, f"{filename}")
+            file_path = os.path.join(save_dir, f"{filename}.jpg")
 
             with open(file_path, "wb") as f:
                 response = client.get(image_url)
