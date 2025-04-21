@@ -7,3 +7,4 @@ lang_processing.py
 logs/*
 poetry.lock
 src/__pycache__/*
+settings.json

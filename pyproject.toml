@@ -17,14 +17,12 @@ pytesseract = "^0.3.13"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.scripts]
-obitnav = "obit_transcriber/cli.py:main"
-
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
 mypy = "^1.7.0"
-black = "^23.10.0"
+black = "^25.1.0"
+
 
 [tool.black]
 line-length = 88
@@ -54,6 +52,7 @@ disallow_incomplete_defs = true
 check_untyped_defs = true
 no_implicit_optional = true
 strict_optional = true
+
 
 [[tool.mypy.overrides]]
 module = "tests.*"            # Less strict typing for tests

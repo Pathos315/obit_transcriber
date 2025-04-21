@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import argparse
 
+from src.config import DATA_DIR
+
 from obit_transcriber.src.downloader import download_obituaries
 from obit_transcriber.src.transcriber import transcribe_images
-from src.config import DATA_DIR
 
 
 def setup_command_line_args():
