@@ -2,7 +2,6 @@ import functools
 import re
 from pathlib import Path
 
-import cv2
 import pytesseract
 from autocorrection import autocorrect_text
 from config import TESSERACT_CONFIG
@@ -87,12 +86,9 @@ def transcribe_images(
 
         # Preprocess the image
         processed_img = preprocess_image(file)
-        temp_file = "temp_processed.jpg"
-        # Save the processed image temporarily for debugging
-        cv2.imwrite(temp_file, processed_img)
 
         try:
-            with Image.open(temp_file) as temp_img:
+            with Image.open(processed_img) as temp_img:
                 # Extract text
                 text = pytesseract.image_to_string(
                     temp_img,

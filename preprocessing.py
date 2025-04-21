@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image, UnidentifiedImageError
 
 
-def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
+def preprocess_image(image_path: Path) -> Image.Image:
     """
     Preprocess the image for OCR by:
     1. Converting to grayscale
@@ -66,8 +66,9 @@ def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
 
     # Invert back to black text on white background
     processed = cv2.bitwise_not(dilated)
+    pil_image = Image.fromarray(processed)
 
-    return processed
+    return pil_image
 
 
 def scale_up_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
