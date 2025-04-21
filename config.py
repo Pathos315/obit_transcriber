@@ -2,7 +2,7 @@
 from pathlib import Path
 
 # Base paths
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path("obituary_reader")
 DATA_DIR = BASE_DIR / "obituaries"
 
 # OCR Settings
