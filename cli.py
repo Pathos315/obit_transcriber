@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import argparse
 
-from obit_downloader import download_obituaries
-
-from obit_transcriber import transcribe_images
+from obit_transcriber.src.downloader import download_obituaries
+from obit_transcriber.src.transcriber import transcribe_images
+from src.config import DATA_DIR
 
 
 def setup_command_line_args():
@@ -28,7 +28,11 @@ def setup_command_line_args():
         "transcribe", help="Transcribe obituary images"
     )
     process_parser.add_argument(
-        "directory", type=str, help="Directory with obituary images to be transcribed"
+        "--directory",
+        type=str,
+        nargs="?",
+        default=DATA_DIR,
+        help="Directory with obituary images to be transcribed",
     )
     process_parser.add_argument(
         "--spellcheck", action="store_true", help="Apply spellchecking"
@@ -50,7 +54,7 @@ def execute_transcription(args: argparse.Namespace) -> None:
     if args.directory:
         transcribe_images(args.directory, args.spellcheck)
     else:
-        print("\nError: Directory argument is required for transcription.\n")
+        transcribe_images(DATA_DIR, args.spellcheck)
 
 
 def main():

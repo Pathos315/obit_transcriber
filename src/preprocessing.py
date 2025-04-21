@@ -1,8 +1,8 @@
 from pathlib import Path
 
-import obit_transcriber.src.config as config
 import cv2
 import numpy as np
+import src.config as config
 from PIL import Image, UnidentifiedImageError
 
 
@@ -66,9 +66,7 @@ def preprocess_image(image_path: Path) -> Image.Image:
 
     # Invert back to black text on white background
     processed = cv2.bitwise_not(dilated)
-    pil_image = Image.fromarray(processed)
-
-    return pil_image
+    return processed
 
 
 def scale_up_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:

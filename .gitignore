@@ -6,3 +6,4 @@ lang_processing.py
 .DS_Store
 logs/*
 poetry.lock
+src/__pycache__/*
