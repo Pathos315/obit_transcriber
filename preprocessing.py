@@ -2,6 +2,7 @@ from pathlib import Path
 from PIL import UnidentifiedImageError, Image
 import cv2
 import numpy as np
+import config
 
 
 def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
@@ -72,13 +73,12 @@ def scale_up_image(image: cv2.typing.MatLike) -> cv2.typing.MatLike:
     """Increases resolution to help with small fonts
     Newspaper font can be very small, scaling helps OCR
     """
-    height, width = image.shape[:2]
-    scale_factor = 3.0  # Triple the size
+    height, width = image.shape[:2]  # Triple the size
     return cv2.resize(
         image,
         (
-            int(width * scale_factor),
-            int(height * scale_factor),
+            int(width * config.SCALE_FACTOR),
+            int(height * config.SCALE_FACTOR),
         ),
         interpolation=cv2.INTER_CUBIC,
     )  # Use CUBIC for better quality
@@ -93,10 +93,10 @@ def denoise(img: cv2.typing.MatLike) -> cv2.typing.MatLike:
         cv2.typing.MatLike: Denoised image
     """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    gray = cv2.GaussianBlur(gray, config.GAUSSIAN_KERNEL_SIZE, 0)
     denoised = cv2.bilateralFilter(gray, 9, 75, 75)
 
     # 4. CONTRAST ENHANCEMENT - Improve text visibility
     # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=config.CLAHE_TILE_SIZE)
     return clahe.apply(denoised)

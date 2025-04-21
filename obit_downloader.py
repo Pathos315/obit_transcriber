@@ -102,10 +102,7 @@ def transform_url_to_image_path(display_url: str) -> str | None:
     if len(name_param) < 8:
         return None
 
-    date_str = name_param[:8]
-    year = date_str[:4]
-    month = date_str[4:6]
-    day = date_str[6:8]
+    date_str, year, month, day = extract_date_components(name_param)
 
     # Extract base domain
     base_domain = re.match(r"(https?://[^/]+/[^/]+)/", display_url).group(1)
@@ -118,13 +115,23 @@ def transform_url_to_image_path(display_url: str) -> str | None:
     return image_url
 
 
+def extract_date_components(name_param: str) -> tuple[str, str, str, str]:
+    """
+    Extract date components from the name parameter.
+    Example:
+    "19910110_Alt_Russell_Darl" -> ("19910110", "1991", "01", "10")
+    """
+    date_str = name_param[:8]
+    year = date_str[:4]
+    month = date_str[4:6]
+    day = date_str[6:8]
+    return date_str, year, month, day
+
+
 def bulk_download_obituaries(obituary_links: list[str]) -> None:
     """
     Download all obituaries from the list of links.
     """
-    with open("obituary_links.txt", "w") as f:
-        f.writelines(obituary_links)
-
     # Create directory for saving images
     save_dir = config.DATA_DIR
     ensure_directory_exists(save_dir)
@@ -133,45 +140,69 @@ def bulk_download_obituaries(obituary_links: list[str]) -> None:
     for i, obituary_link in tqdm.tqdm(
         obituary_links, desc="Downloading obituaries: ", unit="obituary"
     ):
-        try:
-            download_obituary_image(obituary_link)
-        except Exception as e:
-            logger.error(f"Error processing {obituary_link}: {e}")
-            continue
+        with requests.Session() as client:
+            configure_http_client(client)
+            try:
+                download_obituary_image(obituary_link)
+            except Exception as e:
+                logger.error(f"Error processing {obituary_link}: {e}")
+                continue
 
 
-def download_obituary_image(obituary_link: str) -> None:
+def download_obituary_image(obituary_link: str, client: requests.Session) -> None:
+    file_path, image_url = build_image_download_path(obituary_link)
+    contents = download_image(image_url, client)
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+
+def download_image(image_url: str, client: requests.Session) -> bytes:
+    """
+    Download the image from the given URL using the provided HTTP client.
+    This function handles the actual HTTP request and response.
+    """
+    # Ensure the URL is valid
+    if not image_url.startswith("http"):
+        logger.error(f"Invalid URL: {image_url}")
+        return None
+    try:
+        response = client.get(
+            image_url,
+            timeout=config.REQUEST_TIMEOUT,
+        )
+        time.sleep(
+            config.RATE_LIMIT_DELAY
+        )  # Rate limit to avoid overwhelming the server
+        response.raise_for_status()
+        return response.content
+    except requests.RequestException as e:
+        logger.error(f"Failed to download {image_url}: {e}")
+        raise
+
+
+def build_image_download_path(obituary_link: str) -> tuple[Path, str]:
     href = f"http://obit.glbthistory.org/olo/{obituary_link}"
+    filename = extract_filename_from_url(href)
+    file_path: Path = config.DATA_DIR / f"{filename}.jpg"
+    image_url: str = transform_url_to_image_path(href)
+    return file_path, image_url
 
-    with requests.Session() as client:
 
-        adapter = requests.adapters.HTTPAdapter(
-            pool_connections=25, pool_maxsize=25, pool_block=True
-        )
-        client.mount("http://", adapter)
-        client.mount("https://", adapter)
-        client.headers.update(
-            {
-                "User-Agent": config.USER_AGENT,
-            }
-        )
-        image_url = transform_url_to_image_path(href)
-        filename = extract_filename_from_url(href)
-        file_path: Path = config.DATA_DIR / f"{filename}.jpg"
-        try:
-            response = client.get(
-                image_url,
-                timeout=config.REQUEST_TIMEOUT,
-            )
-            response.raise_for_status()
-            with open(file_path, "wb") as f:
-                f.write(response.content)
-                time.sleep(
-                    config.RATE_LIMIT_DELAY
-                )  # Rate limit to avoid overwhelming the server
-        except requests.RequestException as e:
-            logger.error(f"Failed to download {image_url}: {e}")
-            raise
+def configure_http_client(client: requests.Session) -> None:
+    """
+    Configure the HTTP client with a custom adapter and headers.
+    This is used to set up connection pooling and other settings.
+    """
+    adapter = requests.adapters.HTTPAdapter(
+        pool_connections=25, pool_maxsize=25, pool_block=True
+    )
+    client.mount("http://", adapter)
+    client.mount("https://", adapter)
+    client.headers.update(
+        {
+            "User-Agent": config.USER_AGENT,
+        }
+    )
 
 
 def download_obituaries() -> None:
