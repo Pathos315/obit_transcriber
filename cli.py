@@ -20,7 +20,10 @@ def setup_command_line_args():
         "yearfrom", type=str, help="Year to begin downloads from (e.g., 1991)"
     )
     download_parser.add_argument(
-        "yearto", type=str, help="End of range for downloads from (e.g., 1999)"
+        "--yearto",
+        type=str,
+        nargs="?",
+        help="End of range for downloads from (e.g., 1999)",
     )
 
     # Transcribe command
@@ -46,8 +49,11 @@ def execute_download(args: argparse.Namespace) -> None:
 
     if args.yearfrom and args.yearto:  # At least one argument must be provided
         download_obituaries(args.yearfrom, args.yearto)
+    elif args.yearfrom and not args.yearto:
+        # If only one argument is provided, set the year_to to the same value
+        download_obituaries(args.yearfrom, args.yearfrom)
     else:
-        print("\nError: Both yearfrom and yearto are required.\n")
+        print("Please provide a year to begin downloads from.")
 
 
 def execute_transcription(args: argparse.Namespace) -> None:

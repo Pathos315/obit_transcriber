@@ -1,7 +1,7 @@
 # logger.py
 import logging
 
-from config import LOG_DIR
+from src.config import LOG_DIR
 
 
 def setup_logger(name: str) -> logging.Logger:

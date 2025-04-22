@@ -6,7 +6,7 @@ from spellchecker import SpellChecker
 
 # Initialize spell checker once, outside function
 spell = SpellChecker()
-spell.word_frequency.load_text_file("obit_transcriber/valid_words.txt")
+spell.word_frequency.load_text_file("valid_words.txt")
 
 # Pre-compile regex pattern and punctuation set
 PUNCT_SET: Set[str] = set('.,:;!?()[]{}""\'')

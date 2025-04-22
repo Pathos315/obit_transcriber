@@ -3,8 +3,8 @@ from pathlib import Path
 
 # Base paths
 BASE_DIR = Path("obit_transcriber")
-DATA_DIR = BASE_DIR / Path("obituaries")
-LOG_DIR = BASE_DIR / Path("logs")
+DATA_DIR = Path("obituaries")
+LOG_DIR = Path("logs")
 
 # OCR Settings
 TESSERACT_CONFIG = r"--oem 3 --psm 1 --dpi 200 -c preserve_interword_spaces=1 -c tessedit_enable_dict_correction=1 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,' '\'\"-"
