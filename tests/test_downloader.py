@@ -1,17 +1,18 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
+import pytest  # type: ignore
 import requests
 
-from src.downloader import download_obituary_image
+from src import config
+from src.downloader import download_image, download_obituary_image
 
 
 @patch("src.downloader.ensure_directory_exists")
 @patch("src.downloader.download_image")
 @patch("builtins.open", new_callable=MagicMock)
 def test_download_obituary_image_success(
-    mock_open, mock_download_image, mock_ensure_directory_exists
+    mock_open, mock_download_image, mock_ensure_directory_exists  # type: ignore
 ):
     # Mock configuration
     mock_client = MagicMock(spec=requests.Session)
@@ -42,7 +43,7 @@ def test_download_obituary_image_success(
 
 
 @patch("src.downloader.download_image")
-def test_download_obituary_image_invalid_filename(mock_download_image):
+def test_download_obituary_image_invalid_filename(mock_download_image):  # type: ignore
     mock_client = MagicMock(spec=requests.Session)
     obituary_link = "invalid_link"
 
@@ -53,11 +54,11 @@ def test_download_obituary_image_invalid_filename(mock_download_image):
         ):
             download_obituary_image(obituary_link, mock_client)
 
-    mock_download_image.assert_not_called()
+    mock_download_image.assert_not_called()  # type: ignore
 
 
 @patch("src.downloader.download_image")
-def test_download_obituary_image_invalid_image_url(mock_download_image):
+def test_download_obituary_image_invalid_image_url(mock_download_image):  # type: ignore
     mock_client = MagicMock(spec=requests.Session)
     obituary_link = "display.jsp?name=19910110_Alt_Russell_Darl"
 
@@ -72,7 +73,7 @@ def test_download_obituary_image_invalid_image_url(mock_download_image):
             ):
                 download_obituary_image(obituary_link, mock_client)
 
-    mock_download_image.assert_not_called()
+    mock_download_image.assert_not_called()  # type: ignore
 
 
 @patch("src.downloader.download_image")
@@ -97,7 +98,7 @@ def test_download_obituary_image_download_failure(mock_download_image):
                 download_obituary_image(obituary_link, mock_client)
 
 
-def test_download_image_success(mock_sleep):
+def test_download_image_success():
     mock_client = MagicMock(spec=requests.Session)
     mock_response = MagicMock()
     mock_response.content = b"image_data"
@@ -127,7 +128,7 @@ def test_download_image_invalid_url(mock_sleep):
 
 
 @patch("src.downloader.time.sleep", return_value=None)
-def test_download_image_request_exception(mock_sleep):
+def test_download_image_request_exception(mock_sleep):  # type: ignore
     mock_client = MagicMock(spec=requests.Session)
     mock_client.get.side_effect = requests.RequestException("Request failed")
 
@@ -140,7 +141,7 @@ def test_download_image_request_exception(mock_sleep):
 
 
 @patch("src.downloader.time.sleep", return_value=None)
-def test_download_image_http_error(mock_sleep):
+def test_download_image_http_error(mock_sleep):  # type: ignore
     mock_client = MagicMock(spec=requests.Session)
     mock_response = MagicMock()
     mock_response.raise_for_status.side_effect = requests.HTTPError("HTTP error")

@@ -4,7 +4,6 @@ from typing import Any
 import cv2
 import numpy as np
 import pytest
-from numpy._core.multiarray import _Array  # type: ignore
 
 import src.config as config
 from src.preprocessing import denoise, preprocess_image, scale_up_image

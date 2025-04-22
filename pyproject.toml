@@ -57,5 +57,5 @@ strict_optional = true
 
 
 [[tool.mypy.overrides]]
-module = "tests.*"            # Less strict typing for tests
+module = "tests/*"            # Less strict typing for tests
 disallow_untyped_defs = false

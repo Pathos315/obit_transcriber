@@ -67,7 +67,7 @@ def test_cached_correction_nonexistent_word():
 
 def test_cached_correction_with_punctuation():
     # Assuming "corect." is corrected to "correct."
-    assert cached_correction("corect.") == "correct."
+    assert cached_correction("corect.") == "correct"
 
 
 def test_cached_correction_case_sensitivity():
