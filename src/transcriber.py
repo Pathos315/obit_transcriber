@@ -78,7 +78,6 @@ def clean_irregular_text(text: str) -> str:
 def transcribe_images(
     filepath: str | Path,
     spellcheck: bool = False,
-    normalize: bool = True,
     db_path: str = "obituaries.db",
 ) -> list[ObituaryRecord]:
     """
@@ -123,8 +122,7 @@ def transcribe_images(
                     config=TESSERACT_CONFIG,
                 )
                 text = clean_irregular_text(text)  # type: ignore
-                if normalize:
-                    text = normalize_whitespace(text)
+                text = normalize_whitespace(text)
                 if spellcheck:
                     text = autocorrect_text(text)
                 obituary_url = get_obituary_url(file)
