@@ -19,54 +19,71 @@ def cached_correction(word: str) -> str:
     return spell.correction(word) or word
 
 
+def normalize_whitespace(text: str) -> str:
+    """
+    Splits the text into lines, strips all trailing whitespace, regularizes all quote glyphs,
+    and rejoins it.
+
+    :param str text: Input text, which likely has irregular spacing or quotation marks.
+
+    :return str: A cleaned body of text with normalized whitespaces and quotes.
+    """
+    logger.debug(f"Normalizing whitespace for text of length {len(text)}")
+
+    normalized_lines = [line.strip() for line in text.splitlines()]
+
+    # strip trailing whitespace
+    normalized_lines = [re.sub(r" +", " ", line) for line in normalized_lines]
+
+    # regularize quotes
+    normalized_lines = [re.sub(r"[\"`´]", "'", line) for line in normalized_lines]
+
+    logger.debug(
+        f"Whitespace normalization complete, result length: {len(normalized_lines)}"
+    )
+    return "\n".join(normalized_lines)
+
+
 def autocorrect_text(text: str) -> str:
     """
-    Autocorrect misspelled words in a text using pyspellchecker, optimized for speed.
+    Autocorrect misspelled words in a text using pyspellchecker.
 
-    Args:
-        text (str): The input text to correct
+    :param text: The input text to correct
+    :type text: str
 
-    Returns:
-        str: The corrected text
+    :returns str: The corrected text
     """
-    if not text:
-        return text
 
-    # Split text and prepare result list with estimated capacity
+    # Split the text into words
     words = text.split()
-    result: List[str] = []
-    result_append = result.append  # type: ignore
 
-    # Process words directly without batching to reduce overhead
+    # Corrected words list
+    corrected_words = []
+
     for word in words:
-        # Skip empty words
+        # Preserve punctuation
+        punctuation = ""
+        while word and word[-1] in '.,:;!?()[]{}""\'':
+            punctuation = word[-1] + punctuation
+            word = word[:-1]
+
+        # Skip correction for capitalized words (likely proper nouns)
+        if word and word[0].isupper():
+            corrected_words.append(word + punctuation)
+            continue
+
+        # Skip empty strings
         if not word:
-            result_append(word)
             continue
 
-        # Fast path for capitalized words (likely proper nouns)
-        if word[0].isupper():
-            result_append(word)
-            continue
+        # Get the corrected word
+        corrected = spell.correction(word)
 
-        # Fast check if word has any punctuation
-        if word[-1] not in PUNCT_SET:
-            result_append(cached_correction(word))
-            continue
-
-        # Use regex to efficiently extract punctuation
-        match = PUNCT_PATTERN.search(word)
-        if match:
-            punct_start = match.start()
-            if punct_start == 0:
-                # Word is all punctuation
-                result_append(word)
-                continue
-
-            actual_word = word[:punct_start]
-            punctuation = word[punct_start:]
-            result_append(cached_correction(actual_word) + punctuation)
+        # Add back punctuation
+        if corrected:
+            corrected_words.append(corrected + punctuation)
         else:
-            result_append(cached_correction(word))
+            corrected_words.append(word + punctuation)
 
-    return " ".join(result)
+    # Join the corrected words back into a text
+    return " ".join(corrected_words)
