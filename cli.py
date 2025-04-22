@@ -2,16 +2,15 @@
 import argparse
 
 from src.config import DATA_DIR
-
-from obit_transcriber.src.downloader import download_obituaries
-from obit_transcriber.src.transcriber import transcribe_images
+from src.downloader import download_obituaries
+from src.transcriber import transcribe_images
 
 
 def setup_command_line_args():
     parser = argparse.ArgumentParser(
         prog="obitnav",
         description="Navigates the Bay Area Reporter obituary archives website, downloading obituaries or transcribing them.",
-        epilog="Example usage: obitnav download 1991 1999",
+        epilog="Example usage: <...> download 1991 1999",
     )
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 

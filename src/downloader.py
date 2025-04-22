@@ -1,14 +1,16 @@
 import re
 import time
 from pathlib import Path
+from typing import List, Optional, Sequence, Tuple
 from urllib.parse import unquote
 
-import src.config as config
 import requests
-from requests import adapters
 import tqdm
-from src.logger import logger
 from playwright.sync_api import Playwright, sync_playwright
+from requests import adapters
+
+import src.config as config
+from src.logger import logger
 
 
 def ensure_directory_exists(path: str | Path) -> Path:
@@ -23,7 +25,7 @@ def ensure_directory_exists(path: str | Path) -> Path:
     return path
 
 
-def extract_filename_from_url(obituary_url: str) -> str | None:
+def extract_filename_from_url(obituary_url: str) -> Optional[str]:
     """
     Extract a clean filename from an obituary URL.
 
@@ -42,7 +44,7 @@ def extract_filename_from_url(obituary_url: str) -> str | None:
 
 def run(
     playwright: Playwright, year_from: str = "1999", year_to: str = "2000"
-) -> list[str]:
+) -> List[str | None]:
     """
     Run the Playwright browser to scrape obituary links from the GLBT History website.
     This function uses the Playwright library to automate the browser and extract
@@ -102,7 +104,7 @@ def run(
     return obituary_links
 
 
-def transform_url_to_image_path(display_url: str) -> str | None:
+def transform_url_to_image_path(display_url: str) -> Optional[str]:
     """
     Transform a display URL to an image URL for the GLBT History obituary database.
 
@@ -119,13 +121,21 @@ def transform_url_to_image_path(display_url: str) -> str | None:
     name_param = extract_filename_from_url(display_url)
 
     # Extract date components (assuming first 8 chars are YYYYMMDD)
+    if not name_param:
+        return None
+
     if len(name_param) < 8:
         return None
 
     date_str, year, month, day = extract_date_components(name_param)
 
     # Extract base domain
-    base_domain = re.match(r"(https?://[^/]+/[^/]+)/", display_url).group(1)
+    base_domain_full = re.match(r"(https?://[^/]+/[^/]+)/", display_url)
+
+    if not base_domain_full:
+        return None
+
+    base_domain = base_domain_full.group(1)
 
     # Construct the image URL
     image_url: str = (
@@ -153,7 +163,7 @@ def extract_date_components(name_param: str) -> tuple[str, str, str, str]:
     return date_str, year, month, day
 
 
-def bulk_download_obituaries(obituary_links: list[str]) -> None:
+def bulk_download_obituaries(obituary_links: Sequence[str]) -> None:
     """
     Download all obituaries from the list of links.
     This function creates a directory for saving the images and
@@ -222,6 +232,9 @@ def download_obituary_image(obituary_link: str, client: requests.Session) -> Non
         # Download and save the image
         contents = download_image(image_url, client)
 
+        if contents is None:
+            raise ValueError(f"Failed to download image from URL: {image_url}")
+
         with open(file_path, "wb") as f:
             f.write(contents)
 
@@ -231,7 +244,7 @@ def download_obituary_image(obituary_link: str, client: requests.Session) -> Non
         raise
 
 
-def download_image(image_url: str, client: requests.Session) -> bytes:
+def download_image(image_url: str, client: requests.Session) -> Optional[bytes]:
     """
     Download the image from the given URL using the provided HTTP client.
     This function handles the actual HTTP request and response.
@@ -264,7 +277,7 @@ def download_image(image_url: str, client: requests.Session) -> bytes:
         raise
 
 
-def build_image_download_path(obituary_link: str) -> tuple[Path, str]:
+def build_image_download_path(obituary_link: str) -> Tuple[Path, str]:
     """
     Build the image download path and URL for a given obituary link.
     This function is used to determine where to save the downloaded image
@@ -277,7 +290,7 @@ def build_image_download_path(obituary_link: str) -> tuple[Path, str]:
     href = f"http://obit.glbthistory.org/olo/{obituary_link}"
     filename = extract_filename_from_url(href)
     file_path: Path = config.DATA_DIR / f"{filename}.jpg"
-    image_url: str = transform_url_to_image_path(href)
+    image_url: str = transform_url_to_image_path(href)  # type: ignore
     return file_path, image_url
 
 
@@ -308,8 +321,4 @@ def download_obituaries(year_from: str, year_to: str) -> None:
     """
     with sync_playwright() as playwright:
         obituary_links = run(playwright, year_from, year_to)
-        bulk_download_obituaries(obituary_links)
-
-
-if __name__ == "__main__":
-    download_obituaries()
+        bulk_download_obituaries(obituary_links)  # type: ignore

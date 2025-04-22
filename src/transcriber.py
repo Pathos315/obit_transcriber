@@ -5,6 +5,7 @@ from pathlib import Path
 import cv2
 import pytesseract
 from PIL import Image, UnidentifiedImageError
+
 from src.autocorrection import autocorrect_text
 from src.config import TESSERACT_CONFIG
 from src.preprocessing import preprocess_image
@@ -86,18 +87,18 @@ def transcribe_images(
 
         # Preprocess the image
         processed_img = preprocess_image(file)
-        temp_file = "temp_processed.jpg"
+        temp_file: str = "temp_processed.jpg"
         cv2.imwrite(temp_file, processed_img)
 
         try:
             with Image.open(temp_file) as temp_img:
                 # Extract text
-                text = pytesseract.image_to_string(
+                text = pytesseract.image_to_string(  # type: ignore
                     temp_img,
                     lang="eng",
                     config=TESSERACT_CONFIG,
                 )
-                text = clean_irregular_text(text)
+                text = clean_irregular_text(text)  # type: ignore
                 if spellcheck:
                     text = autocorrect_text(text)
                 print(text)

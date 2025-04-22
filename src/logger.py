@@ -1,6 +1,7 @@
 # logger.py
 import logging
-from pathlib import Path
+
+from config import LOG_DIR
 
 
 def setup_logger(name: str) -> logging.Logger:
@@ -9,7 +10,7 @@ def setup_logger(name: str) -> logging.Logger:
     logger.setLevel(logging.INFO)
 
     # Create log directory if it doesn't exist
-    log_dir = Path("logs")
+    log_dir = LOG_DIR
     log_dir.mkdir(exist_ok=True)
 
     # File handler

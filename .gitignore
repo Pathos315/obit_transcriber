@@ -8,3 +8,5 @@ logs/*
 poetry.lock
 src/__pycache__/*
 settings.json
+typings/pytesseract/pytesseract.pyi
+typings/pytesseract/__init__.pyi

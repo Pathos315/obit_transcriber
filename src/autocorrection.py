@@ -1,6 +1,6 @@
 import re
 from functools import lru_cache
-from typing import Set
+from typing import List, Set
 
 from spellchecker import SpellChecker
 
@@ -34,8 +34,8 @@ def autocorrect_text(text: str) -> str:
 
     # Split text and prepare result list with estimated capacity
     words = text.split()
-    result = []
-    result_append = result.append
+    result: List[str] = []
+    result_append = result.append  # type: ignore
 
     # Process words directly without batching to reduce overhead
     for word in words:

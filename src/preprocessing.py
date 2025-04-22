@@ -2,11 +2,12 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import src.config as config
 from PIL import Image, UnidentifiedImageError
 
+import src.config as config
 
-def preprocess_image(image_path: Path) -> Image.Image:
+
+def preprocess_image(image_path: Path) -> cv2.typing.MatLike:
     """
     Preprocess the image for OCR by:
     1. Converting to grayscale
@@ -35,7 +36,7 @@ def preprocess_image(image_path: Path) -> Image.Image:
         raise ValueError(f"File is corrupted: {image_path}")
 
     # Read the image
-    img_cv: cv2.typing.MatLike = cv2.imread(image_path)
+    img_cv: cv2.typing.MatLike = cv2.imread(str(image_path))
 
     # By default OpenCV stores images in BGR format and since pytesseract assumes RGB format,
     # we need to convert from BGR to RGB format/mode:
