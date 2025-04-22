@@ -40,6 +40,9 @@ def setup_command_line_args():
     process_parser.add_argument(
         "--spellcheck", action="store_true", help="Apply spellchecking"
     )
+    process_parser.add_argument(
+        "--normalize", action="store_true", help="Apply whitespace normalization"
+    )
 
     args = parser.parse_args()
     return parser, args

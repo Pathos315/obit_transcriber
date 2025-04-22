@@ -5,9 +5,12 @@ from pathlib import Path
 import cv2
 import pytesseract
 from PIL import Image, UnidentifiedImageError
+from tqdm import tqdm
 
-from src.autocorrection import autocorrect_text
+from src.autocorrection import autocorrect_text, normalize_whitespace
 from src.config import TESSERACT_CONFIG
+from src.database import ObituaryDatabase, ObituaryRecord
+from src.logger import logger
 from src.preprocessing import preprocess_image
 
 
@@ -75,20 +78,41 @@ def clean_irregular_text(text: str) -> str:
 def transcribe_images(
     filepath: str | Path,
     spellcheck: bool = False,
-) -> None:
+    normalize: bool = True,
+    db_path: str = "obituaries.db",
+) -> list[ObituaryRecord]:
     """
     Transcribes text from images in a given directory using Tesseract OCR.
     Args:
         filepath (str): Path to the directory containing images
         spellcheck (bool): Whether to perform spell checking on the extracted text
     """
-    directory = Path(filepath).rglob("*.jpg")
-    for file in directory:
+    # Initialize database once
+    db = ObituaryDatabase(db_path)
+    processed_records: list[ObituaryRecord] = []
+
+    directory = list(Path(filepath).rglob("*.jpg"))
+    for file in tqdm(
+        directory,
+        total=len(directory),
+        desc="Transcribing obituaries: ",
+        unit="obituary",
+    ):
+
+        # Check if the file is already in the database
+        existing_record = db.get_record_by_image_path(str(file))
+        if existing_record:
+            processed_records.append(existing_record)
+            continue
 
         # Preprocess the image
-        processed_img = preprocess_image(file)
-        temp_file: str = "temp_processed.jpg"
-        cv2.imwrite(temp_file, processed_img)
+        try:
+            processed_img = preprocess_image(file)
+            temp_file: str = "temp_processed.jpg"
+            cv2.imwrite(temp_file, processed_img)
+        except ValueError as e:
+            logger.error(f"Error preprocessing {file}: {e}")
+            continue
 
         try:
             with Image.open(temp_file) as temp_img:
@@ -99,8 +123,41 @@ def transcribe_images(
                     config=TESSERACT_CONFIG,
                 )
                 text = clean_irregular_text(text)  # type: ignore
+                if normalize:
+                    text = normalize_whitespace(text)
                 if spellcheck:
                     text = autocorrect_text(text)
-                print(text)
+                obituary_url = get_obituary_url(file)
+
+                # Create and store record
+                record = ObituaryRecord.from_image_path(
+                    image_path=str(file.name),
+                    text_content=text,
+                    obituary_url=obituary_url,
+                )
+                db.add_record(record)
+                processed_records.append(record)
+
         except UnidentifiedImageError:
             continue
+        except Exception as e:
+            logger.error(f"Error processing {file}: {e}")
+            continue
+    # Close database connection
+    db.close()
+
+    return processed_records
+
+
+def get_obituary_url(file: Path) -> str:
+    """
+    Generates the obituary URL based on the filename.
+    Args:
+        file (Path): The file path of the image
+    Returns:
+        str: The generated obituary URL
+    """
+    # Extract the filename without extension
+    filename = file.stem
+    obituary_url = f"http://obit.glbthistory.org/olo/display.jsp?name={filename}"
+    return obituary_url
