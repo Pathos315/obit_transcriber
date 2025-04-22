@@ -1,10 +1,11 @@
 [tool.poetry]
-name = "obituary-reader"
+name = "obituary_reader"
 version = "0.3.1"
 description = "A module to download and transcribe obituaries from the Bay Area Reporter archives."
 authors = ["John Fallot <john.fallot@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -13,6 +14,9 @@ playwright = "^1.51.0"
 pytesseract = "^0.3.13"
 numpy = "^2.2.5"
 tqdm = "^4.67.1"
+requests = "^2.31.0"  # Added requests dependency
+opencv-python = "^4.8.0"  # Added OpenCV for image processing
+pillow = "^10.0.0"  # Added Pillow for image handling
 
 
 [build-system]
@@ -25,6 +29,8 @@ pytest-cov = "^6.1.1"
 mypy = "^1.15.0"
 black = "^25.1.0"
 
+[tool.poetry.scripts]
+obituary_reader = "cli:main"
 
 [tool.black]
 line-length = 88
@@ -54,7 +60,6 @@ disallow_incomplete_defs = true
 check_untyped_defs = true
 no_implicit_optional = true
 strict_optional = true
-
 
 [[tool.mypy.overrides]]
 module = "tests/*"            # Less strict typing for tests
