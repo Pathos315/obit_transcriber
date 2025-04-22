@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from functools import lru_cache
 from threading import Lock
@@ -13,15 +15,15 @@ class SingletonMeta(type):
     Thread-safe implementation of Singleton pattern using metaclass.
     """
 
-    _instances = {}
+    _instances: dict[type, object] = {}
     _lock: Lock = Lock()
 
-    def __call__(cls, *args, **kwargs):  # type: ignore[override]
+    def __call__(cls, *args: object, **kwargs: object) -> object:
         with cls._lock:
-            if cls not in cls._instances:  # type: ignore[override]
+            if cls not in cls._instances:  # type:ignore[union-attr]
                 instance = super().__call__(*args, **kwargs)
-                cls._instances[cls] = instance  # type: ignore
-        return cls._instances[cls]  # type: ignore
+                cls._instances[cls] = instance
+        return cls._instances[cls]
 
 
 class SpellCheckerSingleton(metaclass=SingletonMeta):
@@ -29,7 +31,7 @@ class SpellCheckerSingleton(metaclass=SingletonMeta):
     Thread-safe Singleton SpellChecker for the obituary reader project.
     """
 
-    _spell_checker: Optional[SpellChecker] = None
+    _spell_checker: SpellChecker  # Instance of pyspellchecker.SpellChecker
     _custom_word_file: str = "valid_words.txt"
 
     def __init__(self, custom_word_file: Optional[str] = None):
@@ -42,27 +44,26 @@ class SpellCheckerSingleton(metaclass=SingletonMeta):
         if custom_word_file:
             self._custom_word_file = custom_word_file
 
-        if self._spell_checker is None:
-            self._spell_checker = SpellChecker()
-            try:
-                self._spell_checker.word_frequency.load_text_file(
-                    self._custom_word_file
-                )
-                logger.info(f"Loaded custom words from {self._custom_word_file}")
-            except Exception as e:
-                logger.error(
-                    f"Failed to load custom words from {self._custom_word_file}: {e}"
-                )
+        self._spell_checker = SpellChecker()
+        try:
+            self._spell_checker.word_frequency.load_text_file(self._custom_word_file)
+            logger.info(f"Loaded custom words from {self._custom_word_file}")
+        except Exception as e:
+            logger.error(
+                f"Failed to load custom words from {self._custom_word_file}: {e}"
+            )
 
     @property
-    def spell_checker(self) -> SpellChecker:
+    def spell_checker(self) -> SpellChecker:  # Explicitly specify the return type
         """
         Get the SpellChecker instance.
 
         Returns:
             SpellChecker: The initialized SpellChecker instance
         """
-        return self._spell_checker  # type: ignore[override]
+        if not self._spell_checker:
+            raise ValueError("SpellChecker is not initialized.")
+        return self._spell_checker
 
     def correction(self, word: str) -> str:
         """
@@ -77,7 +78,9 @@ class SpellCheckerSingleton(metaclass=SingletonMeta):
         if not word:
             return word
 
-        corrected = self._spell_checker.correction(word)  # type: ignore[override]
+        if not self._spell_checker:
+            raise ValueError("SpellChecker is not initialized.")
+        corrected = self._spell_checker.correction(word)
         return corrected if corrected else word
 
 
@@ -98,7 +101,7 @@ def cached_correction(word: str) -> str:
         str: The corrected word or the original if no correction is found
     """
     spell_checker = SpellCheckerSingleton()
-    return spell_checker.correction(word)
+    return spell_checker.correction(word)  # type: ignore
 
 
 def normalize_whitespace(text: str) -> str:
@@ -130,12 +133,13 @@ def normalize_whitespace(text: str) -> str:
 
 def autocorrect_text(text: str) -> str:
     """
-    Autocorrect misspelled words in a text using pyspellchecker, optimized for speed.
+    Autocorrect misspelled words in a text using pyspellchecker.
 
     Args:
         text: The input text to correct
 
-    :returns str: The corrected text
+    Returns:
+        str: The corrected text
     """
     # Split the text into words
     words = text.split()
@@ -144,18 +148,17 @@ def autocorrect_text(text: str) -> str:
     corrected_words: list[str] = []
 
     for word in words:
-        # Skip empty words
-        if not word:
-            result_append(word)
+        # Preserve punctuation
+        punctuation = ""
+        while word and word[-1] in PUNCT_SET:
+            punctuation = word[-1] + punctuation
+            word = word[:-1]
+
+        # Skip correction for capitalized words (likely proper nouns)
+        if word and word[0].isupper():
+            corrected_words.append(word + punctuation)
             continue
 
-        # Fast path for capitalized words (likely proper nouns)
-        if word[0].isupper():
-            result_append(word)
-            continue
-
-        # Skip empty strings
-        if not word:
         # Skip empty strings
         if not word:
             continue
