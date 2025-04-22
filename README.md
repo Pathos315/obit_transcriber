@@ -49,50 +49,61 @@ cd obituary-reader
 
 # Install dependencies using Poetry
 poetry install
+
+# Install in development mode
+poetry install
 ```
 
-## Usage
+## Command-Line Usage
 
-The module provides three main functions:
+After installation, you can run the tool using the `obituary_reader` command:
+
+### Downloading Obituaries
+
+```bash
+# Download obituaries from a specific year
+obituary_reader download 1991
+
+# Download obituaries from a range of years
+obituary_reader download 1991 --yearto 1999
+```
+
+### Transcribing Obituaries
+
+```bash
+# Transcribe all obituaries in the default directory
+obituary_reader transcribe
+
+# Transcribe obituaries in a specific directory with spellchecking
+obituary_reader transcribe --directory obituaries/1991 --spellcheck
+```
+
+## Programmatic Usage
+
+You can also use the module in your Python scripts:
 
 ### 1. Downloading Obituaries
 
-Run the obituary scanner to download obituaries for a specific year:
+```python
+from src.downloader import download_obituaries
 
-```bash
-poetry run python obit_scanner.py
+# Download obituaries for a specific year range
+download_obituaries("1991", "1997")
 ```
-
-When prompted, enter the desired year (e.g., 1991, 1997). The script will:
-
-- Scrape obituary links from the GLBT History website
-- Download the obituary images
-- Save them to the `obituaries/YEAR` directory
 
 ### 2. Processing and Transcribing Obituaries
 
-To process downloaded obituaries and extract text:
-
-```bash
-poetry run python obit_reader.py
-```
-
-By default, this processes images in the `obituaries/1997` directory. To specify a different directory or enable spellchecking:
-
 ```python
-# In your script or modify obit_reader.py
-from obit_reader import process_images
+from src.transcriber import transcribe_images
 
 # Process images with spellchecking
-process_images("obituaries/1991", spellcheck=True)
+transcribe_images("obituaries/1991", spellcheck=True)
 ```
 
 ### 3. Custom Preprocessing
 
-You can also use the preprocessing functionality separately:
-
 ```python
-from preprocessing import preprocess_image
+from src.preprocessing import preprocess_image
 from pathlib import Path
 
 # Preprocess a single image
