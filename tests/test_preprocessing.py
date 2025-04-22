@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -7,7 +8,7 @@ from numpy._core.multiarray import _Array  # type: ignore
 
 import src.config as config
 from src.preprocessing import denoise, preprocess_image, scale_up_image
-from numpy import unsignedinteger, uint8, uint16, int32, int64, float32, float64
+
 
 @pytest.fixture
 def valid_image_path(tmp_path: Path):
@@ -77,9 +78,7 @@ def sample_image():
     return np.zeros((50, 50, 3), dtype=np.uint8)  # A simple black image
 
 
-def test_scale_up_image_valid(
-    sample_image: _Array[tuple[int, int, int], np.unsignedinteger[_8Bit]],
-):
+def test_scale_up_image_valid(sample_image):
     """Test scale_up_image with a valid image."""
     config.SCALE_FACTOR = 2  # Set scale factor for testing
     scaled_image = scale_up_image(sample_image)
@@ -112,9 +111,7 @@ def test_scale_up_image_negative_scale_factor(
         scale_up_image(sample_image)
 
 
-def test_denoise_valid_image(
-    sample_image: _Array[tuple[int, int, int], unsignedinteger[_8Bit]],
-):
+def test_denoise_valid_image(sample_image):
     """Test denoise with a valid image."""
     config.GAUSSIAN_KERNEL_SIZE = (5, 5)  # Set kernel size for testing
     config.CLAHE_TILE_SIZE = (8, 8)  # Set CLAHE tile size for testing
@@ -135,7 +132,7 @@ def test_denoise_invalid_input():
 def test_denoise_empty_image():
     """Test denoise with an empty image."""
     empty_image = np.zeros((0, 0, 3), dtype=np.uint8)  # Empty image
-    with pytest.raises(cv2.):
+    with pytest.raises(cv2.error):
         denoise(empty_image)
 
 
