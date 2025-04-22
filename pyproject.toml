@@ -11,6 +11,7 @@ python = "^3.12"
 spellchecker = "^0.4"
 playwright = "^1.51.0"
 pytesseract = "^0.3.13"
+numpy = "^2.2.5"
 
 
 [build-system]
@@ -18,9 +19,9 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.4.0"
-pytest-cov = "^4.1.0"
-mypy = "^1.7.0"
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
+mypy = "^1.15.0"
 black = "^25.1.0"
 
 

@@ -10,3 +10,4 @@ src/__pycache__/*
 settings.json
 typings/pytesseract/pytesseract.pyi
 typings/pytesseract/__init__.pyi
+test/__pycache__/*
