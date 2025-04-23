@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from functools import lru_cache
 from threading import Lock
 from typing import Optional, Set
@@ -102,33 +101,6 @@ def cached_correction(word: str) -> str:
     """
     spell_checker = SpellCheckerSingleton()
     return spell_checker.correction(word)  # type: ignore
-
-
-def normalize_whitespace(text: str) -> str:
-    """
-    Splits the text into lines, strips all trailing whitespace, regularizes all quote glyphs,
-    and rejoins it.
-
-    Args:
-        text: Input text, which likely has irregular spacing or quotation marks.
-
-    Returns:
-        str: A cleaned body of text with normalized whitespaces and quotes.
-    """
-    logger.debug(f"Normalizing whitespace for text of length {len(text)}")
-
-    normalized_lines = [line.strip() for line in text.splitlines()]
-
-    # strip trailing whitespace
-    normalized_lines = [re.sub(r" +", " ", line) for line in normalized_lines]
-
-    # regularize quotes
-    normalized_lines = [re.sub(r"[\"`´]", "'", line) for line in normalized_lines]
-
-    logger.debug(
-        f"Whitespace normalization complete, result length: {len(normalized_lines)}"
-    )
-    return "\n".join(normalized_lines)
 
 
 def autocorrect_text(text: str) -> str:

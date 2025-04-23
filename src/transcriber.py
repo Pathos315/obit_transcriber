@@ -1,5 +1,3 @@
-import functools
-import re
 from pathlib import Path
 
 import cv2
@@ -7,72 +5,12 @@ import pytesseract
 from PIL import Image, UnidentifiedImageError
 from tqdm import tqdm
 
-from src.autocorrection import autocorrect_text, normalize_whitespace
+from src.autocorrection import autocorrect_text
 from src.config import TESSERACT_CONFIG
 from src.database import ObituaryDatabase, ObituaryRecord
 from src.logger import logger
 from src.preprocessing import preprocess_image
-
-
-def replace_text_with_dict(text: str) -> str:
-    """
-    Replaces specific patterns in the text with their replacements
-    using a dictionary of patterns and replacements.
-    This is a more efficient way to apply multiple replacements
-    without creating intermediate strings.
-    The lambda function takes the current string and a pattern,
-    and applies the replacement using re.sub.
-
-    Args:
-        text (str): The input text to process
-    Returns:
-        str: The processed text with replacements"""
-
-    # Dictionary of patterns and replacements
-    replacements = {
-        r"(\w+)-\s*\n\s*(\w+)": r"\1\2",
-        r"([a-zA-Z])4([a-zA-Z])": r"\1a\2",
-        r"([a-zA-Z])1([a-zA-Z])": r"\1l\2",
-        r"([a-zA-Z])0([a-zA-Z])": r"\1o\2",
-        r"([a-zA-Z])5([a-zA-Z])": r"\1s\2",
-        r"'9o": "'90",
-        r"'8o": "'80",
-        r"'7o": "'70",
-        r"'6o": "'60",
-        r"[§|•~`]": "",
-        r"\n(?!<PARAGRAPH>)": "\n",
-    }
-
-    return functools.reduce(
-        lambda s, pattern: re.sub(pattern, replacements[pattern], s),
-        replacements.keys(),
-        text,
-    )
-
-
-def clean_irregular_text(text: str) -> str:
-    """
-    Cleans up irregular text by:
-    1. Fixing hyphenated words at line breaks
-    2. Converting multiple consecutive line breaks to paragraph breaks
-    3. Joining lines that are part of the same paragraph
-    4. Normalizing whitespace
-
-    Args:
-        text (str): Raw irregular text from OCR
-
-    Returns:
-        str: Cleaned text with proper paragraphs
-    """
-    # Step 1: Normalize line endings
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-
-    # Step 2: Remove excess leading/trailing spaces from each line
-    lines = (line.strip() for line in text.split("\n"))
-    text = "\n".join(lines)
-    text = replace_text_with_dict(text)
-
-    return text
+from src.textnormalizer import TextNormalizer
 
 
 def transcribe_images(
@@ -85,8 +23,12 @@ def transcribe_images(
     Args:
         filepath (str): Path to the directory containing images
         spellcheck (bool): Whether to perform spell checking on the extracted text
+        db_path (str): Path to the SQLite database file
+    Returns:
+        list[ObituaryRecord]: List of processed obituary records
     """
     # Initialize database once
+    normalizer = TextNormalizer()
     db = ObituaryDatabase(db_path)
     processed_records: list[ObituaryRecord] = []
 
@@ -116,25 +58,14 @@ def transcribe_images(
         try:
             with Image.open(temp_file) as temp_img:
                 # Extract text
-                text = pytesseract.image_to_string(  # type: ignore
+                process_obituary_image(
+                    db,
+                    normalizer,
+                    processed_records,
+                    file,
                     temp_img,
-                    lang="eng",
-                    config=TESSERACT_CONFIG,
+                    spellcheck=spellcheck,
                 )
-                text = clean_irregular_text(text)  # type: ignore
-                text = normalize_whitespace(text)
-                if spellcheck:
-                    text = autocorrect_text(text)
-                obituary_url = get_obituary_url(file)
-
-                # Create and store record
-                record = ObituaryRecord.from_image_path(
-                    image_path=str(file.name),
-                    text_content=text,
-                    obituary_url=obituary_url,
-                )
-                db.add_record(record)
-                processed_records.append(record)
 
         except UnidentifiedImageError:
             continue
@@ -145,6 +76,46 @@ def transcribe_images(
     db.close()
 
     return processed_records
+
+
+def process_obituary_image(
+    db: ObituaryDatabase,
+    normalizer: TextNormalizer,
+    processed_records: list[ObituaryRecord],
+    file: Path,
+    temp_img: Image.Image,
+    spellcheck: bool = False,
+) -> None:
+    """
+    Processes the image to extract text and create a record in the database.
+    Args:
+        db (ObituaryDatabase): The database instance
+        processed_records (list[ObituaryRecord]): List to store processed records
+        file (Path): The file path of the image
+        temp_img (Image.Image): The preprocessed image
+        spellcheck (bool): Whether to perform spell checking on the extracted text
+
+    Returns:
+        None
+    """
+    text: str = pytesseract.image_to_string(  # type: ignore
+        temp_img,
+        lang="eng",
+        config=TESSERACT_CONFIG,
+    )
+    text = normalizer.clean_text(text)  # type: ignore
+    if spellcheck:
+        text = autocorrect_text(text)
+    obituary_url = get_obituary_url(file)
+
+    # Create and store record
+    record = ObituaryRecord.from_image_path(
+        image_path=str(file.name),
+        text_content=text,
+        obituary_url=obituary_url,
+    )
+    db.add_record(record)
+    processed_records.append(record)
 
 
 def get_obituary_url(file: Path) -> str:
