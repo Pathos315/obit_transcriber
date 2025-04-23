@@ -77,7 +77,7 @@ def test_download_obituary_image_invalid_image_url(mock_download_image):  # type
 
 
 @patch("src.downloader.download_image")
-def test_download_obituary_image_download_failure(mock_download_image):
+def test_download_obituary_image_download_failure(mock_download_image: MagicMock):
     mock_client = MagicMock(spec=requests.Session)
     obituary_link = "display.jsp?name=19910110_Alt_Russell_Darl"
     mock_image_url = "http://obit.glbthistory.org/olo/imagedb/1991/01/10/19910110_Alt_Russell_Darl/m19910110_0.jpg"
@@ -117,7 +117,7 @@ def test_download_image_success():
 
 
 @patch("src.downloader.time.sleep", return_value=None)
-def test_download_image_invalid_url(mock_sleep):
+def test_download_image_invalid_url(mock_sleep: MagicMock):
     mock_client = MagicMock(spec=requests.Session)
     image_url = "invalid_url"
 
