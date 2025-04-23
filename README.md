@@ -1,15 +1,21 @@
 # Obituary Reader
 
-A Python module to download, process, and transcribe obituaries from the Bay Area Reporter GLBT History archives.
+A Python module to download, process, transcribe, and store obituaries from
+the [Bay Area Reporter Obituary Archives](http://obit.glbthistory.org/olo/index.jsp), which are run in
+partnership with [GLBT Historical Society](https://www.glbthistory.org/).
+
+▼ What Is Remembered Lives. ▼
 
 ## Overview
 
-This tool provides functionality to:
+This tool provides comprehensive functionality to:
 
-1. **Download obituaries** from the GLBT History archives for a specified year
+1. **Download obituaries** from the GLBT History archives for a specified year range
 2. **Process and preprocess images** to enhance readability for OCR
 3. **Transcribe text** from obituary images using Tesseract OCR
 4. **Clean and autocorrect** the extracted text for improved accuracy
+5. **Store transcriptions** in a SQLite database with metadata
+6. **Export data** to CSV or Excel formats
 
 ## Installation
 
@@ -49,9 +55,6 @@ cd obituary-reader
 
 # Install dependencies using Poetry
 poetry install
-
-# Install in development mode
-poetry install
 ```
 
 ## Command-Line Usage
@@ -78,6 +81,7 @@ obituary_reader transcribe
 obituary_reader transcribe --directory obituaries/1991 --spellcheck
 ```
 
+
 ## Programmatic Usage
 
 You can also use the module in your Python scripts:
@@ -96,46 +100,21 @@ download_obituaries("1991", "1997")
 ```python
 from src.transcriber import transcribe_images
 
-# Process images with spellchecking
-transcribe_images("obituaries/1991", spellcheck=True)
-```
-
-### 3. Custom Preprocessing
-
-```python
-from src.preprocessing import preprocess_image
-from pathlib import Path
-
-# Preprocess a single image
-processed_img = preprocess_image(Path("path/to/image.jpg"))
+# Process images with spellchecking and store in database
+records = transcribe_images("obituaries/1991", spellcheck=True)
 ```
 
 ## Module Structure
 
-- **obit_scanner.py**: Web scraper to download obituaries
+- **downloader.py**: Web scraper to download obituaries
 - **preprocessing.py**: Image preprocessing for OCR enhancement
-- **obit_reader.py**: OCR and text extraction
-- **autocorrection.py**: Text cleaning and spellchecking
+- **transcriber.py**: OCR and text extraction
+- **textnormalizer.py**: Text cleaning and normalization
+- **autocorrection.py**: Spellchecking with custom dictionary
+- **database.py**: SQLite database for storing obituary data
+- **config.py**: Configuration settings
+- **logger.py**: Logging functionality
 - **valid_words.txt**: Domain-specific words for spellchecking
-
-## Technical Details
-
-### Image Preprocessing Steps
-
-1. Converts images to grayscale
-2. Applies thresholding to handle background noise
-3. Increases resolution for better OCR with small fonts
-4. Applies denoising filters
-5. Enhances contrast to improve text visibility
-6. Connects broken text with dilation
-7. Inverts images to have black text on white background
-
-### Text Cleaning Process
-
-1. Fixes hyphenated words at line breaks
-2. Corrects common OCR errors (e.g., "1" instead of "l")
-3. Removes irregular characters
-4. Applies spellchecking with domain-specific exceptions
 
 ## License
 
