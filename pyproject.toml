@@ -17,6 +17,8 @@ tqdm = "^4.67.1"
 requests = "^2.31.0"  # Added requests dependency
 opencv-python = "^4.8.0"  # Added OpenCV for image processing
 pillow = "^10.0.0"  # Added Pillow for image handling
+pyspellchecker = "^0.8.2"
+pandas = "^2.2.3"
 
 
 [build-system]
@@ -30,7 +32,7 @@ mypy = "^1.15.0"
 black = "^25.1.0"
 
 [tool.poetry.scripts]
-obituary_reader = "cli:main"
+obituary_reader = "~/obituary_reader/obit_transcriber/cli.py:main"
 
 [tool.black]
 line-length = 88
