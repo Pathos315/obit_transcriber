@@ -34,12 +34,12 @@ def test_download_obituary_image_success(
             download_obituary_image(obituary_link, mock_client)
 
     # Assertions
-    mock_ensure_directory_exists.assert_called_once_with(Path("/mock/path/1991"))
-    mock_download_image.assert_called_once_with(mock_image_url, mock_client)
-    mock_open.assert_called_once_with(
+    mock_ensure_directory_exists.assert_called_once_with(Path("/mock/path/1991"))  # type: ignore
+    mock_download_image.assert_called_once_with(mock_image_url, mock_client)  # type: ignore
+    mock_open.assert_called_once_with(  # type: ignore
         Path("/mock/path/1991/19910110_Alt_Russell_Darl.jpg"), "wb"
     )
-    mock_open().write.assert_called_once_with(b"image_data")
+    mock_open().write.assert_called_once_with(b"image_data")  # type: ignore
 
 
 @patch("src.downloader.download_image")

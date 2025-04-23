@@ -64,6 +64,7 @@ def transcribe_images(
                     processed_records,
                     file,
                     temp_img,
+                    Image.open(file),
                     spellcheck=spellcheck,
                 )
 
@@ -84,6 +85,7 @@ def process_obituary_image(
     processed_records: list[ObituaryRecord],
     file: Path,
     temp_img: Image.Image,
+    raw_img: Image.Image,
     spellcheck: bool = False,
 ) -> None:
     """
@@ -112,6 +114,7 @@ def process_obituary_image(
     record = ObituaryRecord.from_image_path(
         image_path=str(file.name),
         text_content=text,
+        raw_image=raw_img,
         obituary_url=obituary_url,
     )
     db.add_record(record)
