@@ -13,6 +13,7 @@ import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import date
+from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -69,11 +70,15 @@ class ObituaryRecord:
         # Resize the image to a manageable size to reduce memory usage
         max_size = (1024, 1024)  # Example maximum dimensions
         raw_image.thumbnail(max_size)
-        from io import BytesIO
 
         # Compress the image and save it to an in-memory buffer
         buffer = BytesIO()
-        raw_image.save(buffer, format="JPEG", quality=85)  # Adjust quality as needed
+        raw_image.save(
+            buffer,
+            format="JPEG",
+            quality=85,
+            optimize=True,
+        )  # Adjust quality as needed
         image_data = buffer.getvalue()
 
         # If we have a pattern like YYYYMMDD_Name
@@ -135,9 +140,9 @@ class ObituaryDatabase:
             image_path TEXT NOT NULL,
             text_content TEXT NOT NULL,
             obituary_url TEXT,
-            year TEXT,
-            month TEXT,
-            day TEXT,
+            year CHAR(4),
+            month CHAR(2),
+            day CHAR(2),
             date_published DATE,
             name TEXT,
             last_name TEXT,
