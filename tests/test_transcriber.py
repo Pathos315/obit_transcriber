@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from PIL import UnidentifiedImageError
 
-from src.transcriber import replace_text_with_dict, transcribe_images
+from src.transcriber import transcribe_images
 
 
 @pytest.fixture
