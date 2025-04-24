@@ -52,6 +52,23 @@ exclude = '''
   | dist
 )/
 '''
+skip-string-normalization = false
+check = true
+fast = false
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_third_party = ["playwright", "pytesseract", "numpy", "tqdm", "requests", "opencv-python", "pillow", "pyspellchecker", "pandas"]
+skip = ["__init__.py"]
+default_section = "THIRDPARTY"
+known_first_party = ["obituary_reader"]
+force_sort_within_sections = true
+combine_as_imports = true
+force_grid_wrap = 0
+include_trailing_comma = true
+multi_line_output = 3
+
 
 [tool.mypy]
 python_version = "3.12"
@@ -62,6 +79,11 @@ disallow_incomplete_defs = true
 check_untyped_defs = true
 no_implicit_optional = true
 strict_optional = true
+ignore_missing_imports = false
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_subclassing_any = true
+
 
 [[tool.mypy.overrides]]
 module = "tests/*"            # Less strict typing for tests
