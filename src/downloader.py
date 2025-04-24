@@ -104,9 +104,10 @@ def run(
     return obituary_links
 
 
-def transform_url_to_image_path(display_url: str) -> Optional[str]:
+def transform_url_to_image_path(display_url: str, index: int = 0) -> Optional[str]:
     """
     Transform a display URL to an image URL for the GLBT History obituary database.
+    Now supports multiple image indices (0, 1, 2).
 
     Example:
     "http://obit.glbthistory.org/olo/display.jsp?name=19910110_Alt_Russell_Darl" ->
@@ -114,6 +115,7 @@ def transform_url_to_image_path(display_url: str) -> Optional[str]:
 
     Args:
         display_url: The display URL to transform
+        index: The image index to use (0, 1, or 2)
     Returns:
         str | None: The transformed image URL or None if the transformation fails
     """
@@ -137,9 +139,9 @@ def transform_url_to_image_path(display_url: str) -> Optional[str]:
 
     base_domain = base_domain_full.group(1)
 
-    # Construct the image URL
+    # Construct the image URL with the specified index
     image_url: str = (
-        f"{base_domain}/imagedb/{year}/{month}/{day}/{name_param}/m{date_str}_0.jpg"
+        f"{base_domain}/imagedb/{year}/{month}/{day}/{name_param}/m{date_str}_{index}.jpg"
     )
 
     return image_url
@@ -197,6 +199,7 @@ def bulk_download_obituaries(obituary_links: Sequence[str]) -> None:
 def download_obituary_image(obituary_link: str, client: requests.Session) -> None:
     """
     Download an obituary image and save it to disk in the appropriate year folder.
+    If index 0 fails, it will try to download both index 1 and index 2.
 
     Args:
         obituary_link: Link to the obituary page
@@ -204,7 +207,7 @@ def download_obituary_image(obituary_link: str, client: requests.Session) -> Non
 
     Raises:
         ValueError: If URL transformation fails
-        requests.RequestException: If download fails
+        requests.RequestException: If all download attempts fail
         IOError: If file writing fails
     """
     try:
@@ -224,21 +227,71 @@ def download_obituary_image(obituary_link: str, client: requests.Session) -> Non
             # Use base directory if year can't be determined
             file_path = config.DATA_DIR / f"{filename}.jpg"
 
-        # Get the image URL
-        image_url = transform_url_to_image_path(href)
-        if not image_url:
-            raise ValueError(f"Failed to transform URL to image path: {href}")
+        # First try with index 0
+        try:
+            # Get the image URL with index 0
+            image_url = transform_url_to_image_path(href, 0)
+            if not image_url:
+                raise ValueError(f"Failed to transform URL to image path: {href}")
 
-        # Download and save the image
-        contents = download_image(image_url, client)
+            # Download and save the image
+            contents = download_image(image_url, client)
+            if contents is None:
+                raise ValueError(f"Failed to download image from URL: {image_url}")
 
-        if contents is None:
-            raise ValueError(f"Failed to download image from URL: {image_url}")
+            with open(file_path, "wb") as f:
+                f.write(contents)
 
-        with open(file_path, "wb") as f:
-            f.write(contents)
+            logger.debug(f"Downloaded {image_url} to {file_path}")
+            return  # Success with index 0, no need to try others
 
-        logger.debug(f"Downloaded {image_url} to {file_path}")
+        except (requests.RequestException, ValueError) as e:
+            logger.warning(
+                f"Failed to download with index 0: {e}. Trying indices 1 and 2..."
+            )
+
+            # Try both indices 1 and 2, regardless of success with either
+            success_count = 0
+            for index in [1, 2]:
+                try:
+                    # Get the image URL with the current index
+                    image_url = transform_url_to_image_path(href, index)
+                    if not image_url:
+                        logger.warning(
+                            f"Failed to transform URL to image path with index {index}"
+                        )
+                        continue
+
+                    # Download the image
+                    contents = download_image(image_url, client)
+                    if contents is None:
+                        logger.warning(
+                            f"Failed to download image from URL: {image_url}"
+                        )
+                        continue
+
+                    # Save the image with index in the filename
+                    index_file_path = file_path.with_stem(f"{file_path.stem}_{index}")
+                    with open(index_file_path, "wb") as f:
+                        f.write(contents)
+
+                    logger.debug(f"Downloaded {image_url} to {index_file_path}")
+                    success_count += 1
+
+                except requests.RequestException as e:
+                    logger.warning(f"Failed to download with index {index}: {e}")
+                    continue  # Continue to try the next index
+
+            # Check if at least one alternative download succeeded
+            if success_count == 0:
+                raise ValueError(
+                    f"Failed to download obituary image with any index for {filename}"
+                )
+            else:
+                logger.info(
+                    f"Successfully downloaded {success_count} alternative images for {filename}"
+                )
+
     except Exception as e:
         logger.error(f"Failed to download obituary image: {e}")
         raise
