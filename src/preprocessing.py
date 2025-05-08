@@ -1,8 +1,8 @@
 from pathlib import Path
 
+from PIL import Image, UnidentifiedImageError
 import cv2
 import numpy as np
-from PIL import Image, UnidentifiedImageError
 
 import src.config as config
 

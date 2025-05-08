@@ -1,8 +1,8 @@
 from pathlib import Path
 
+from PIL import Image, UnidentifiedImageError
 import cv2
 import pytesseract
-from PIL import Image, UnidentifiedImageError
 from tqdm import tqdm
 
 from src.autocorrection import autocorrect_text

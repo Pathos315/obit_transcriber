@@ -1,13 +1,13 @@
+from pathlib import Path
 import re
 import time
-from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 from urllib.parse import unquote
 
-import requests
-import tqdm
 from playwright.sync_api import Playwright, sync_playwright
+import requests
 from requests import adapters
+import tqdm
 
 import src.config as config
 from src.logger import logger

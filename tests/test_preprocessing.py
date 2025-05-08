@@ -3,6 +3,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+from numpy._core.multiarray import _Array
 import pytest
 
 import src.config as config
@@ -77,7 +78,7 @@ def sample_image():
     return np.zeros((50, 50, 3), dtype=np.uint8)  # A simple black image
 
 
-def test_scale_up_image_valid(sample_image):
+def test_scale_up_image_valid(sample_image: _Array[tuple[int, int, int], np.unsignedinteger[np._8Bit]]):
     """Test scale_up_image with a valid image."""
     config.SCALE_FACTOR = 2  # Set scale factor for testing
     scaled_image = scale_up_image(sample_image)
@@ -93,7 +94,7 @@ def test_scale_up_image_invalid_input():
 
 
 def test_scale_up_image_zero_scale_factor(
-    sample_image: _Array[tuple[int, int, int], np.unsignedinteger[_8Bit]],
+    sample_image: _Array[tuple[int, int, int], np.unsignedinteger[np._8Bit]],
 ):
     """Test scale_up_image with a zero scale factor."""
     config.SCALE_FACTOR = 0  # Set scale factor to zero
@@ -110,7 +111,7 @@ def test_scale_up_image_negative_scale_factor(
         scale_up_image(sample_image)
 
 
-def test_denoise_valid_image(sample_image):
+def test_denoise_valid_image(sample_image: _Array[tuple[int, int, int], np.unsignedinteger[np._8Bit]]):
     """Test denoise with a valid image."""
     config.GAUSSIAN_KERNEL_SIZE = (5, 5)  # Set kernel size for testing
     config.CLAHE_TILE_SIZE = (8, 8)  # Set CLAHE tile size for testing

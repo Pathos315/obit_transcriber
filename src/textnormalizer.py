@@ -1,5 +1,5 @@
-import re
 from dataclasses import dataclass, field
+import re
 from typing import Dict, Pattern
 
 from src.logger import logger

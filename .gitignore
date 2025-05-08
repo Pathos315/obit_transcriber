@@ -12,3 +12,6 @@ typings/pytesseract/pytesseract.pyi
 typings/pytesseract/__init__.pyi
 tests/__pycache__/*
 obituaries.db**
+coverage.xml
+.coverage
+obit_transcriber.code-workspace
