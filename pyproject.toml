@@ -16,7 +16,7 @@ numpy = "^2.2.5"
 tqdm = "^4.67.1"
 requests = "^2.31.0"  # Added requests dependency
 opencv-python = "^4.8.0"  # Added OpenCV for image processing
-pillow = "^10.0.0"  # Added Pillow for image handling
+pillow = "^11.2.1"  # Added Pillow for image handling
 pyspellchecker = "^0.8.2"
 pandas = "^2.2.3"
 
