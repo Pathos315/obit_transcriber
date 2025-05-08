@@ -101,35 +101,3 @@ def test_transcribe_images_handles_unidentified_image_error(
 
         mock_preprocess_image.assert_called_once()
         mock_cv2_imwrite.assert_called_once()
-
-@pytest.mark.skip("What's replace text with dict??")
-@pytest.mark.parametrize(
-    "input_text, expected_output",
-    [
-        # Test for hyphenated words at line breaks
-        ("hello-\nworld", "helloworld"),
-        # Test for replacing '4' with 'a' between letters
-        ("c4t", "cat"),
-        # Test for replacing '1' with 'l' between letters
-        ("he1lo", "hello"),
-        # Test for replacing '0' with 'o' between letters
-        ("h0me", "home"),
-        # Test for replacing '5' with 's' between letters
-        ("pas5word", "password"),
-        # Test for replacing specific year patterns
-        ("'9o", "'90"),
-        ("'8o", "'80"),
-        ("'7o", "'70"),
-        ("'6o", "'60"),
-        # Test for removing unwanted characters
-        ("hello§world", "helloworld"),
-        ("hello•world", "helloworld"),
-        ("hello~world", "helloworld"),
-        ("hello`world", "helloworld"),
-        # Test for preserving newlines unless followed by <PARAGRAPH>
-        ("line1\nline2", "line1\nline2"),
-        ("line1\n<PARAGRAPH>\nline2", "line1\n<PARAGRAPH>\nline2"),
-    ],
-)
-def test_replace_text_with_dict(input_text, expected_output):
-    assert replace_text_with_dict(input_text) == expected_output
