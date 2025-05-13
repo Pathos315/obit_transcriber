@@ -218,7 +218,12 @@ def prepare_file_path(filename: str) -> Path:
         return config.DATA_DIR / f"{filename}.jpg"
 
 
-def download_single_image(href: str, index: int, file_path: Path, client: requests.Session, ) -> bool:
+def download_single_image(
+        href: str,
+        index: int,
+        file_path: Path,
+        client: requests.Session,
+        ) -> bool:
     """
     Attempt to download a single image with the specified index.
 

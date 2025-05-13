@@ -1,4 +1,5 @@
 # Obituary Reader
+
 A Python module to download, process, transcribe, and store obituaries, from
 the [Bay Area Reporter Obituary Archives](http://obit.glbthistory.org/olo/index.jsp). The archives are run in
 partnership with the [GLBT Historical Society](https://www.glbthistory.org/) in San Francisco, CA.
@@ -8,6 +9,7 @@ partnership with the [GLBT Historical Society](https://www.glbthistory.org/) in 
 ## Overview
 
 This tool provides comprehensive functionality to:
+
 1. **Download obituaries** from the GLBT History archives for a specified year range
 2. **Process and preprocess images** to enhance readability for OCR
 3. **Transcribe text** from obituary images using Tesseract OCR
@@ -20,26 +22,27 @@ This tool provides comprehensive functionality to:
 This project uses Poetry for dependency management.
 
 ### Prerequisites
+
 - Python 3.12+
 - Tesseract OCR engine
 - Poetry
 
 ### Installing Tesseract OCR
 
-#### On Ubuntu/Debian:
+#### On Ubuntu/Debian
 
 ```bash
 sudo apt update
 sudo apt install tesseract-ocr
 ```
 
-#### On macOS:
+#### On macOS
 
 ```bash
 brew install tesseract
 ```
 
-#### On Windows:
+#### On Windows
 
 Download and install from [GitHub Tesseract release page](https://github.com/UB-Mannheim/tesseract/wiki)
 
@@ -78,11 +81,12 @@ obituary_reader transcribe
 obituary_reader transcribe --directory obituaries/1991 --spellcheck
 ```
 
-
 ## Programmatic Usage
+
 You can also use the module in your Python scripts:
 
 ### 1. Downloading Obituaries
+
 ```python
 from src.downloader import download_obituaries
 
@@ -91,6 +95,7 @@ download_obituaries("1991", "1997")
 ```
 
 ### 2. Processing and Transcribing Obituaries
+
 ```python
 from src.transcriber import transcribe_images
 
@@ -99,6 +104,7 @@ records = transcribe_images("obituaries/1991", spellcheck=True)
 ```
 
 ## Module Structure
+
 - **downloader.py**: Web scraper to download obituaries
 - **preprocessing.py**: Image preprocessing for OCR enhancement
 - **transcriber.py**: OCR and text extraction
@@ -110,7 +116,9 @@ records = transcribe_images("obituaries/1991", spellcheck=True)
 - **valid_words.txt**: Domain-specific words for spellchecking
 
 ## License
+
 MIT
 
 ## Author
+
 John Fallot <john.fallot@gmail.com>
