@@ -29,7 +29,7 @@ build-backend = "poetry.core.masonry.api"
 pytest = "^8.3.5"
 pytest-cov = "^6.1.1"
 mypy = "^1.15.0"
-black = "^25.1.0"
+black = "^26.1.0"
 
 [tool.poetry.scripts]
 obituary_reader = "cli:main"
